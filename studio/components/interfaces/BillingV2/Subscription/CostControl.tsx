@@ -1,7 +1,8 @@
+import Image from 'next/image'
 import { useParams } from 'common'
 import ShimmeringLoader from 'components/ui/ShimmeringLoader'
 import { useProjectSubscriptionQuery } from 'data/subscriptions/project-subscription-query'
-import { PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
+import { BASE_PATH, PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import { Button, IconAlertCircle } from 'ui'
 
 export interface CostControlProps {}
@@ -10,7 +11,7 @@ const CostControl = ({}: CostControlProps) => {
   const { ref: projectRef } = useParams()
   const { data: subscription, isLoading } = useProjectSubscriptionQuery({ projectRef })
   const currentTier = subscription?.tier?.supabase_prod_id ?? ''
-  const isSpendCapOn = [PRICING_TIER_PRODUCT_IDS.PAYG, PRICING_TIER_PRODUCT_IDS.TEAM].includes(
+  const isSpendCapOn = ![PRICING_TIER_PRODUCT_IDS.PAYG, PRICING_TIER_PRODUCT_IDS.TEAM].includes(
     currentTier
   )
 
@@ -54,17 +55,31 @@ const CostControl = ({}: CostControlProps) => {
           )}
           <div className="flex space-x-6">
             <div>
-              <div className="rounded-md bg-scale-400 w-[160px] h-[96px]">
-                {/* Spend cap picture here */}
+              <div className="rounded-md w-[160px] h-[96px] shadow">
+                <Image
+                  width={160}
+                  height={96}
+                  src={
+                    isSpendCapOn
+                      ? `${BASE_PATH}/img/spend-cap-on.svg`
+                      : `${BASE_PATH}/img/spend-cap-off.svg`
+                  }
+                />
               </div>
             </div>
             <div>
               <p className="mb-1">Spend cap is {isSpendCapOn ? 'on' : 'off'}</p>
               <p className="text-sm text-scale-1000">
                 {isSpendCapOn
-                  ? 'You will be charged for any extra usage above your included usage quota'
-                  : 'You will never be charged any extra for usage. However, your project will experience downtime if you exceed the included usage quota'}
+                  ? 'You will never be charged any extra for usage. However, your project will experience downtime if you exceed the included quota'
+                  : 'You will be charged for any usage above the included quota'}
               </p>
+              {!isSpendCapOn && (
+                <p className="text-sm text-scale-1000 mt-1">
+                  Your project will never become unresponsive or be paused. Only when your usage
+                  reaches the quota limit will you be charged for any excess usage.
+                </p>
+              )}
               <Button type="default" className="mt-4">
                 Change spend cap
               </Button>

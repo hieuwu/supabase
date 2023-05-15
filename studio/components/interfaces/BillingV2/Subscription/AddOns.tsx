@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { useParams } from 'common'
 import { getCurrentAddons } from 'components/interfaces/Billing/Billing.utils'
 import ShimmeringLoader from 'components/ui/ShimmeringLoader'
@@ -5,6 +6,7 @@ import { useStripeProductsQuery } from 'data/stripe/products-query'
 import { useProjectSubscriptionQuery } from 'data/subscriptions/project-subscription-query'
 import { Button } from 'ui'
 import { getActiveAddOns } from './Subscription.utils'
+import { BASE_PATH } from 'lib/constants'
 
 export interface AddOnsProps {}
 
@@ -51,8 +53,16 @@ const AddOns = ({}: AddOnsProps) => {
             {/* Compute add on selection */}
             <div className="flex space-x-6">
               <div>
-                <div className="rounded-md bg-scale-400 w-[160px] h-[96px]">
-                  {/* Picture here */}
+                <div className="rounded-md bg-scale-400 w-[160px] h-[96px] shadow">
+                  <Image
+                    width={160}
+                    height={96}
+                    src={
+                      activeAddons?.computeSize !== undefined
+                        ? `${BASE_PATH}/img/optimized-compute-on.svg`
+                        : `${BASE_PATH}/img/optimized-compute-off.svg`
+                    }
+                  />
                 </div>
               </div>
               <div className="flex-grow">
@@ -89,14 +99,24 @@ const AddOns = ({}: AddOnsProps) => {
             {/* PITR selection */}
             <div className="flex space-x-6">
               <div>
-                <div className="rounded-md bg-scale-400 w-[160px] h-[96px]">
-                  {/* Picture here */}
+                <div className="rounded-md bg-scale-400 w-[160px] h-[96px] shadow">
+                  <Image
+                    width={160}
+                    height={96}
+                    src={
+                      activeAddons?.pitrDuration !== undefined
+                        ? `${BASE_PATH}/img/pitr-on.svg`
+                        : `${BASE_PATH}/img/pitr-off.svg`
+                    }
+                  />
                 </div>
               </div>
               <div>
                 <p className="text-sm text-scale-1000">Point in time recovery</p>
                 <p className="">
-                  {activeAddons?.pitrDuration?.name ?? 'No point in time recovery available'}
+                  {activeAddons?.pitrDuration !== undefined
+                    ? 'No point in time recovery available'
+                    : 'Point in time recovery is enabled'}
                 </p>
                 {/* No point in time recovery available */}
                 <Button type="default" className="mt-2">
@@ -110,8 +130,16 @@ const AddOns = ({}: AddOnsProps) => {
             {/* Custom domain selection */}
             <div className="flex space-x-6">
               <div>
-                <div className="rounded-md bg-scale-400 w-[160px] h-[96px]">
-                  {/* Picture here */}
+                <div className="rounded-md bg-scale-400 w-[160px] h-[96px] shadow">
+                  <Image
+                    width={160}
+                    height={96}
+                    src={
+                      activeAddons?.customDomains !== undefined
+                        ? `${BASE_PATH}/img/custom-domain-on.svg`
+                        : `${BASE_PATH}/img/custom-domain-off.svg`
+                    }
+                  />
                 </div>
               </div>
               <div>
