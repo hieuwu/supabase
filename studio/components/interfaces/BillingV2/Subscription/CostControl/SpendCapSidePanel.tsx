@@ -2,20 +2,19 @@ import { useParams } from 'common'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
 import { SidePanel } from 'ui'
 
-export interface ComputeInstanceSidePanelProps {
+export interface SpendCapSidePanelProps {
   visible: boolean
   onClose: () => void
 }
 
-const ComputeInstanceSidePanel = ({ visible, onClose }: ComputeInstanceSidePanelProps) => {
+const SpendCapSidePanel = ({ visible, onClose }: SpendCapSidePanelProps) => {
   const { ref: projectRef } = useParams()
-  const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
 
   return (
     <SidePanel size="xlarge" visible={visible} onCancel={onClose}>
-      Compute Instance
+      Spend Cap
     </SidePanel>
   )
 }
 
-export default ComputeInstanceSidePanel
+export default SpendCapSidePanel

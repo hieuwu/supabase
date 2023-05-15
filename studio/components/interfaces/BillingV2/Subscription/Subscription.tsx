@@ -1,6 +1,6 @@
 import AddOns from './AddOns/AddOns'
 import BillingBreakdown from './BillingBreakdown'
-import CostControl from './CostControl'
+import CostControl from './CostControl/CostControl'
 import SubscriptionTier from './Tier/SubscriptionTier'
 
 export interface SubscriptionProps {}
