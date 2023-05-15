@@ -8,8 +8,8 @@ export type ProjectUsageVariables = {
   projectRef?: string
 }
 
-export interface UsageMetadata {
-  usage: number | null
+export interface UsageMetric {
+  usage: number
   limit: number
   cost: number
   available_in_plan: boolean
@@ -19,21 +19,18 @@ export interface UsageMetadata {
 }
 
 export type ProjectUsageResponse = {
-  db_size: UsageMetadata
-  db_egress: UsageMetadata
+  db_size: UsageMetric
+  db_egress: UsageMetric
+  storage_size: UsageMetric
+  storage_egress: UsageMetric
+  storage_image_render_count: UsageMetric
+  monthly_active_users: UsageMetric
+  monthly_active_sso_users: UsageMetric
+  realtime_message_count: UsageMetric
+  realtime_peak_connection: UsageMetric
+  func_count: UsageMetric
+  func_invocations: UsageMetric
   disk_volume_size_gb: number
-
-  storage_size: UsageMetadata
-  storage_egress: UsageMetadata
-  storage_image_render_count: UsageMetadata
-
-  monthly_active_users: UsageMetadata
-
-  func_count: UsageMetadata
-  func_invocations: UsageMetadata
-
-  realtime_message_count: UsageMetadata
-  realtime_peak_connection: UsageMetadata
 }
 
 export type ProjectUsageResponseUsageKeys = keyof Omit<ProjectUsageResponse, 'disk_volume_size_gb'>
@@ -65,6 +62,22 @@ export const useProjectUsageQuery = <TData = ProjectUsageData>(
     ({ signal }) => getProjectUsage({ projectRef }, signal),
     {
       enabled: enabled && typeof projectRef !== 'undefined',
+      select(data) {
+        return Object.fromEntries(
+          Object.entries(data).map(([key, value]) => {
+            if (typeof value === 'object') {
+              const formattedValue = {
+                ...value,
+                usage: Number(value.usage),
+              }
+
+              return [key, formattedValue]
+            } else {
+              return [key, value]
+            }
+          })
+        )
+      },
       ...options,
     }
   )
