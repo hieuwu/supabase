@@ -2,41 +2,43 @@ import clsx from 'clsx'
 import { useParams } from 'common'
 import ShimmeringLoader from 'components/ui/ShimmeringLoader'
 import SparkBar from 'components/ui/SparkBar'
-import { useProjectSubscriptionQuery } from 'data/subscriptions/project-subscription-query'
+import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
+import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import {
   ProjectUsageResponse,
-  UsageMetadata,
+  UsageMetric,
   useProjectUsageQuery,
 } from 'data/usage/project-usage-query'
 import dayjs from 'dayjs'
+import { USAGE_APPROACHING_THRESHOLD } from 'lib/constants'
 import { formatBytes } from 'lib/helpers'
+import { useState } from 'react'
+import { Button, Collapsible, IconAlertTriangle, IconChevronRight } from 'ui'
 import BillingBreakdownRow from './BillingBreakdownRow'
 import { BILLING_BREAKDOWN_METRICS } from './Subscription.constants'
-import { getActiveAddOns } from './Subscription.utils'
-import { USAGE_APPROACHING_THRESHOLD } from 'lib/constants'
-import { IconAlertTriangle } from 'ui'
+import { calculateTotalCost, getAddons } from './Subscription.utils'
 
 export interface BillingBreakdownProps {}
 
 const BillingBreakdown = ({}: BillingBreakdownProps) => {
   const { ref: projectRef } = useParams()
+  const [showUsageFees, setShowUsageFees] = useState(false)
   const { data: usage, isLoading: isLoadingUsage } = useProjectUsageQuery({ projectRef })
-  const { data: subscription, isLoading: isLoadingSubscription } = useProjectSubscriptionQuery({
+  const { data: addons, isLoading: isLoadingAddons } = useProjectAddonsQuery({ projectRef })
+  const { data: subscription, isLoading: isLoadingSubscription } = useProjectSubscriptionV2Query({
     projectRef,
   })
-  const activeAddons = subscription !== undefined ? getActiveAddOns(subscription) : undefined
-  const billingCycleStart = dayjs.unix(subscription?.billing?.current_period_start ?? 0).utc()
-  const billingCycleEnd = dayjs.unix(subscription?.billing?.current_period_end ?? 0).utc()
 
-  // [Joshen] To be derived dynamically
-  const tierCost = (subscription?.tier.unit_amount ?? 0) / 100
-  const addOnsCost =
-    activeAddons !== undefined
-      ? Object.values(activeAddons)
-          .map((value) => value?.unit_amount ?? 0)
-          .reduce((a, b) => a + b, 0) / 100
-      : 0
-  const totalUpcomingCost = tierCost + addOnsCost
+  const usageFees = subscription?.usage_fees ?? []
+  const selectedAddons = addons?.selected_addons ?? []
+  const { computeInstance, pitr, customDomain } = getAddons(selectedAddons)
+  const billingCycleStart = dayjs.unix(subscription?.current_period_start ?? 0).utc()
+  const billingCycleEnd = dayjs.unix(subscription?.current_period_end ?? 0).utc()
+
+  const totalUpcomingCost =
+    subscription !== undefined ? calculateTotalCost(subscription, selectedAddons) : 0
+
+  console.log({ subscription, selectedAddons })
 
   return (
     <div className="grid grid-cols-12">
@@ -76,7 +78,7 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
             <div className="grid grid-cols-12">
               {BILLING_BREAKDOWN_METRICS.map((metric, i) => {
                 const usageMeta =
-                  (usage?.[metric.key as keyof ProjectUsageResponse] as UsageMetadata) ?? undefined
+                  (usage?.[metric.key as keyof ProjectUsageResponse] as UsageMetric) ?? undefined
                 const usageRatio =
                   typeof usageMeta !== 'number'
                     ? (usageMeta?.usage ?? 0) / (usageMeta?.limit ?? 0)
@@ -153,12 +155,7 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
           )}
 
           <p className="!mt-10 text-sm">Upcoming cost for next invoice</p>
-          <p className="text-sm text-scale-1000">
-            Your plan includes a limited amount of included usage. If the usage on your project
-            exceeds these quotas, your subscription will be charged for the extra usage.
-            Organization owners are notified each time your project approaches or exceeds the
-            included usage. Learn more
-          </p>
+          <p className="text-sm text-scale-1000">[TODO] Some description text here</p>
           <p className="text-sm text-scale-1000">
             Current billing cycle: {billingCycleStart.format('MMM DD')} -{' '}
             {billingCycleEnd.format('MMM DD')}
@@ -175,31 +172,58 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
             </thead>
             <tbody>
               {/* Tier */}
-              <BillingBreakdownRow name={subscription?.tier.name} cost={tierCost} />
+              <BillingBreakdownRow
+                name={subscription?.tier.name}
+                cost={(subscription?.tier.unit_amount ?? 0) / 100}
+              />
               {/* Compute */}
-              {activeAddons?.computeSize !== undefined ? (
+              {computeInstance !== undefined ? (
                 <BillingBreakdownRow
-                  name={activeAddons.computeSize.name}
-                  cost={activeAddons.computeSize.unit_amount / 100}
+                  name={computeInstance.variant.name}
+                  cost={computeInstance.variant.price}
                 />
               ) : (
                 <BillingBreakdownRow name="Micro compute" cost={0} />
               )}
               {/* PITR */}
-              {activeAddons?.pitrDuration !== undefined && (
-                <BillingBreakdownRow
-                  name="Point in time recovery"
-                  cost={activeAddons.pitrDuration.unit_amount / 100}
-                />
+              {pitr !== undefined && (
+                <BillingBreakdownRow name="Point in time recovery" cost={pitr.variant.price} />
               )}
               {/* Custom domain */}
-              {activeAddons?.customDomains !== undefined && (
-                <BillingBreakdownRow
-                  name="Custom domain"
-                  cost={activeAddons.customDomains.unit_amount / 100}
-                />
+              {customDomain !== undefined && (
+                <BillingBreakdownRow name="Custom domain" cost={customDomain.variant.price} />
               )}
-              {/* Total */}
+            </tbody>
+
+            {/* [TODO] Usage fees - We'll get this data from a separate endpoint */}
+            {usageFees.length > 0 && (
+              <Collapsible asChild open={showUsageFees} onOpenChange={setShowUsageFees}>
+                <tbody>
+                  <Collapsible.Trigger asChild>
+                    <tr className="border-b cursor-pointer" style={{ WebkitAppearance: 'initial' }}>
+                      <td className="py-2 text-sm flex items-center space-x-2">
+                        <Button type="text" className="!px-1" icon={<IconChevronRight />} />
+                        <p>Usage items</p>
+                      </td>
+                    </tr>
+                  </Collapsible.Trigger>
+                  <Collapsible.Content asChild>
+                    <>
+                      {usageFees.map((fee) => (
+                        <tr key={fee.metric}>
+                          <td className="py-2 text-sm pl-8">{fee.metric}</td>
+                          <td className="py-2 text-sm"></td>
+                          <td className="py-2 text-sm">{fee.pricingOptions.perUnitPrice ?? 0}</td>
+                          <td className="py-2 text-sm text-right"></td>
+                        </tr>
+                      ))}
+                    </>
+                  </Collapsible.Content>
+                </tbody>
+              </Collapsible>
+            )}
+
+            <tbody>
               <tr>
                 <td className="py-2 text-sm">Total</td>
                 <td className="py-2 text-sm" />

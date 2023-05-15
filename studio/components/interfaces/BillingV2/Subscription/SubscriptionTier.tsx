@@ -1,7 +1,7 @@
 import { useParams } from 'common'
 import ShimmeringLoader from 'components/ui/ShimmeringLoader'
 import SparkBar from 'components/ui/SparkBar'
-import { useProjectSubscriptionQuery } from 'data/subscriptions/project-subscription-query'
+import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import dayjs from 'dayjs'
 import { PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import Link from 'next/link'
@@ -11,7 +11,7 @@ export interface SubscriptionTierProps {}
 
 const SubscriptionTier = ({}: SubscriptionTierProps) => {
   const { ref: projectRef } = useParams()
-  const { data: subscription, isLoading } = useProjectSubscriptionQuery({ projectRef })
+  const { data: subscription, isLoading } = useProjectSubscriptionV2Query({ projectRef })
 
   const currentTier = subscription?.tier?.supabase_prod_id ?? ''
   const tierName =
@@ -27,8 +27,8 @@ const SubscriptionTier = ({}: SubscriptionTierProps) => {
       ? 'Enterprise'
       : 'Unknown'
 
-  const billingCycleStart = dayjs.unix(subscription?.billing?.current_period_start ?? 0).utc()
-  const billingCycleEnd = dayjs.unix(subscription?.billing?.current_period_end ?? 0).utc()
+  const billingCycleStart = dayjs.unix(subscription?.current_period_start ?? 0).utc()
+  const billingCycleEnd = dayjs.unix(subscription?.current_period_end ?? 0).utc()
   const daysToCycleEnd = billingCycleEnd.diff(dayjs(), 'days')
   const daysWithinCycle = billingCycleEnd.diff(billingCycleStart, 'days')
 

@@ -1,38 +1,73 @@
-import Image from 'next/image'
 import { useParams } from 'common'
-import { getCurrentAddons } from 'components/interfaces/Billing/Billing.utils'
 import ShimmeringLoader from 'components/ui/ShimmeringLoader'
-import { useStripeProductsQuery } from 'data/stripe/products-query'
-import { useProjectSubscriptionQuery } from 'data/subscriptions/project-subscription-query'
-import { Button } from 'ui'
-import { getActiveAddOns } from './Subscription.utils'
+import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
 import { BASE_PATH } from 'lib/constants'
+import Image from 'next/image'
+import { Button, IconExternalLink } from 'ui'
+import { getAddons } from './Subscription.utils'
+import Link from 'next/link'
 
 export interface AddOnsProps {}
 
 const AddOns = ({}: AddOnsProps) => {
   const { ref: projectRef } = useParams()
-  const { data: products } = useStripeProductsQuery()
-  const { data: subscription, isLoading } = useProjectSubscriptionQuery({ projectRef })
-  const activeAddons = subscription !== undefined ? getActiveAddOns(subscription) : undefined
 
-  // [Joshen] Since we're showing more information about the compute than before, please
-  // remember to update on Stripe as well, and follow a fixed format:
-  // [CPU] • [Memory] • [Disk IO max burst] • [Baseline Disk IO] • [No. connections]
-  const activeComputeAddOnMetadata = (products?.addons ?? []).find(
-    (product) => product.id === activeAddons?.computeSize?.prod_id
-  )
-  const computeSpecs =
-    activeComputeAddOnMetadata?.metadata?.features ??
-    '2-core ARM (shared) • 1GB memory • 2,606 Mbps • 87 Mbps • 50'
-  const [cpu, memory, maxIO, baseIO, connectionLimit] = computeSpecs.split('•').map((x) => x.trim())
+  const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
+  const selectedAddons = addons?.selected_addons ?? []
+  const availableAddons = addons?.available_addons ?? []
+
+  const { computeInstance, pitr, customDomain } = getAddons(selectedAddons)
+  const computeInstanceSpecs =
+    computeInstance !== undefined
+      ? availableAddons
+          .find((addon) => addon.type === 'compute_instance')
+          ?.variants.find((variant) => variant.identifier === computeInstance.variant.identifier)
+          ?.meta
+      : undefined
 
   return (
     <div className="grid grid-cols-12">
       <div className="col-span-5">
         <div className="sticky top-16">
-          <p className="text-base">Add ons</p>
-          <p className="text-sm text-scale-1000">Some description text here</p>
+          <div className="space-y-6">
+            <div>
+              <p className="text-base">Add ons</p>
+              <p className="text-sm text-scale-1000">[TODO] Some description text here</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-scale-1100">More information</p>
+              <div>
+                <Link href="https://supabase.com/docs/guides/platform/compute-add-ons">
+                  <a target="_blank" rel="noreferrer">
+                    <div className="flex items-center space-x-2 opacity-50 hover:opacity-100 transition">
+                      <p className="text-sm">About compute add-ons</p>
+                      <IconExternalLink size={16} strokeWidth={1.5} />
+                    </div>
+                  </a>
+                </Link>
+              </div>
+              <div>
+                <Link href="https://supabase.com/docs/guides/platform/custom-domains">
+                  <a target="_blank" rel="noreferrer">
+                    <div className="flex items-center space-x-2 opacity-50 hover:opacity-100 transition">
+                      <p className="text-sm">About custom domains</p>
+                      <IconExternalLink size={16} strokeWidth={1.5} />
+                    </div>
+                  </a>
+                </Link>
+              </div>
+              <div>
+                <Link href="https://supabase.com/docs/guides/platform/backups">
+                  <a target="_blank" rel="noreferrer">
+                    <div className="flex items-center space-x-2 opacity-50 hover:opacity-100 transition">
+                      <p className="text-sm">About PITR backups</p>
+                      <IconExternalLink size={16} strokeWidth={1.5} />
+                    </div>
+                  </a>
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       {isLoading ? (
@@ -43,11 +78,7 @@ const AddOns = ({}: AddOnsProps) => {
         </div>
       ) : (
         <div className="col-span-7 space-y-6">
-          <p className="text-sm text-scale-1000">
-            [This needs to be changed] There is a usage quota included and a spend cap turned on by
-            default. If you need to go beyond the inclusive limits, simply switch off your spend cap
-            to pay for additional usage.
-          </p>
+          <p className="text-sm text-scale-1000">[TODO] Some description text here</p>
 
           <div className="py-2 space-y-6">
             {/* Compute add on selection */}
@@ -58,7 +89,7 @@ const AddOns = ({}: AddOnsProps) => {
                     width={160}
                     height={96}
                     src={
-                      activeAddons?.computeSize !== undefined
+                      computeInstance !== undefined
                         ? `${BASE_PATH}/img/optimized-compute-on.svg`
                         : `${BASE_PATH}/img/optimized-compute-off.svg`
                     }
@@ -67,29 +98,36 @@ const AddOns = ({}: AddOnsProps) => {
               </div>
               <div className="flex-grow">
                 <p className="text-sm text-scale-1000">Optimized compute</p>
-                <p className="">{activeAddons?.computeSize?.name ?? 'Micro'}</p>
+                <p className="">{computeInstance?.variant.name ?? 'Micro'}</p>
                 <Button type="default" className="mt-2">
                   Change optimized compute
                 </Button>
                 <div className="mt-2 w-full flex items-center justify-between border-b py-2">
                   <p className="text-sm text-scale-1000">Memory</p>
-                  <p className="text-sm">{memory ?? 'Unknown'}</p>
+                  <p className="text-sm">{computeInstanceSpecs?.memory_gb ?? 1} GB</p>
                 </div>
                 <div className="w-full flex items-center justify-between border-b py-2">
                   <p className="text-sm text-scale-1000">CPU</p>
-                  <p className="text-sm">{cpu ?? 'Unknown'}</p>
+                  <p className="text-sm">
+                    {computeInstanceSpecs?.cpu_cores ?? 2}-core ARM{' '}
+                    {computeInstanceSpecs?.cpu_dedicated ? '(Dedicated)' : '(Shared)'}
+                  </p>
                 </div>
-                <div className="w-full flex items-center justify-between border-b py-2">
+                {/* <div className="w-full flex items-center justify-between border-b py-2">
                   <p className="text-sm text-scale-1000">No. of connections</p>
-                  <p className="text-sm">{connectionLimit ?? 'Unknown'}</p>
-                </div>
+                  <p className="text-sm">{computeInstanceSpecs !== undefined ? 'Unknown' : ''}</p>
+                </div> */}
                 <div className="w-full flex items-center justify-between border-b py-2">
                   <p className="text-sm text-scale-1000">Disk IO Bandwidth max burst</p>
-                  <p className="text-sm">{maxIO ?? 'Unknown'}</p>
+                  <p className="text-sm">
+                    {computeInstanceSpecs?.max_disk_io_mbs?.toLocaleString() ?? '2,606'} Mbps
+                  </p>
                 </div>
                 <div className="w-full flex items-center justify-between py-2">
                   <p className="text-sm text-scale-1000">Baseline Disk IO Bandwidth</p>
-                  <p className="text-sm">{baseIO ?? 'Unknown'}</p>
+                  <p className="text-sm">
+                    {computeInstanceSpecs?.baseline_disk_io_mbs?.toLocaleString() ?? 87} Mbps
+                  </p>
                 </div>
               </div>
             </div>
@@ -104,7 +142,7 @@ const AddOns = ({}: AddOnsProps) => {
                     width={160}
                     height={96}
                     src={
-                      activeAddons?.pitrDuration !== undefined
+                      pitr !== undefined
                         ? `${BASE_PATH}/img/pitr-on.svg`
                         : `${BASE_PATH}/img/pitr-off.svg`
                     }
@@ -114,11 +152,10 @@ const AddOns = ({}: AddOnsProps) => {
               <div>
                 <p className="text-sm text-scale-1000">Point in time recovery</p>
                 <p className="">
-                  {activeAddons?.pitrDuration !== undefined
-                    ? 'No point in time recovery available'
-                    : 'Point in time recovery is enabled'}
+                  {pitr !== undefined
+                    ? 'Point in time recovery is enabled'
+                    : 'No point in time recovery available'}
                 </p>
-                {/* No point in time recovery available */}
                 <Button type="default" className="mt-2">
                   Change point in time recovery
                 </Button>
@@ -135,7 +172,7 @@ const AddOns = ({}: AddOnsProps) => {
                     width={160}
                     height={96}
                     src={
-                      activeAddons?.customDomains !== undefined
+                      customDomain !== undefined
                         ? `${BASE_PATH}/img/custom-domain-on.svg`
                         : `${BASE_PATH}/img/custom-domain-off.svg`
                     }
@@ -145,7 +182,7 @@ const AddOns = ({}: AddOnsProps) => {
               <div>
                 <p className="text-sm text-scale-1000">Custom domain</p>
                 <p className="">
-                  {activeAddons?.customDomains !== undefined
+                  {customDomain !== undefined
                     ? 'Custom domain is enabled'
                     : 'Custom domain is not enabled'}
                 </p>
@@ -156,11 +193,7 @@ const AddOns = ({}: AddOnsProps) => {
             </div>
           </div>
 
-          <p className="text-sm text-scale-1000">
-            [This needs to be changed] There is a usage quota included and a spend cap turned on by
-            default. If you need to go beyond the inclusive limits, simply switch off your spend cap
-            to pay for additional usage.
-          </p>
+          <p className="text-sm text-scale-1000">[TODO] Some description text here</p>
         </div>
       )}
     </div>

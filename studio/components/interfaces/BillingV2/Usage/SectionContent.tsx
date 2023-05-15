@@ -41,7 +41,7 @@ const SectionContent = ({
                     <a target="_blank" rel="noreferrer">
                       <div className="flex items-center space-x-2 opacity-50 hover:opacity-100 transition">
                         <p className="text-sm">Documentation</p>
-                        <IconExternalLink size={16} strokeWidth={2} />
+                        <IconExternalLink size={16} strokeWidth={1.5} />
                       </div>
                     </a>
                   </Link>
