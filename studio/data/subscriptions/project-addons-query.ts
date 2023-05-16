@@ -24,6 +24,8 @@ export interface ProjectAvailableAddonVariant extends ProjectAddonVariant {
     baseline_disk_io_mbs?: number
     max_disk_io_mbs?: number
     memory_gb?: number
+    connections_direct?: number
+    connections_pooler?: number
     backup_duration_days?: number
   }
 }

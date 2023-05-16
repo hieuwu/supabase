@@ -123,10 +123,10 @@ const AddOns = ({}: AddOnsProps) => {
                       {computeInstanceSpecs?.cpu_dedicated ? '(Dedicated)' : '(Shared)'}
                     </p>
                   </div>
-                  {/* <div className="w-full flex items-center justify-between border-b py-2">
-                  <p className="text-sm text-scale-1000">No. of connections</p>
-                  <p className="text-sm">{computeInstanceSpecs !== undefined ? 'Unknown' : ''}</p>
-                </div> */}
+                  <div className="w-full flex items-center justify-between border-b py-2">
+                    <p className="text-sm text-scale-1000">No. of connections</p>
+                    <p className="text-sm">{computeInstanceSpecs?.connections_direct ?? 60}</p>
+                  </div>
                   <div className="w-full flex items-center justify-between border-b py-2">
                     <p className="text-sm text-scale-1000">Disk IO Bandwidth max burst</p>
                     <p className="text-sm">

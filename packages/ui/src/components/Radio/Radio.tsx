@@ -136,9 +136,9 @@ function RadioGroup({
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label: string
-  afterLabel?: string
+  afterLabel?: string | React.ReactNode
   beforeLabel?: string | React.ReactNode
-  description?: string
+  description?: string | React.ReactNode
   size?: 'tiny' | 'small' | 'medium' | 'large' | 'xlarge'
   hidden?: boolean
   align?: 'vertical' | 'horizontal'
@@ -156,6 +156,7 @@ function Radio({
   description,
   name,
   checked,
+  className,
   onChange,
   onBlur,
   hidden = false,
@@ -196,6 +197,7 @@ function Radio({
           activeId === markupId ? true : checked ? true : checked === false ? false : undefined
 
         let classes = [
+          className,
           __styles.variants[type].container.base,
           // __styles.variants[type].container.align[align],
           type === 'list' && !hidden && __styles.variants[type].container.size[size],
@@ -253,22 +255,22 @@ function Radio({
               ].join(' ')}
             >
               {beforeLabel && (
-                <span
+                <div
                   className={[__styles.label_before.base, __styles.label_before[size]].join(' ')}
                 >
                   {beforeLabel}
-                </span>
+                </div>
               )}
               <span>{label}</span>
               {afterLabel && (
-                <span className={[__styles.label_after.base, __styles.label_after[size]].join(' ')}>
+                <div className={[__styles.label_after.base, __styles.label_after[size]].join(' ')}>
                   {afterLabel}
-                </span>
+                </div>
               )}
               {description && (
-                <p className={[__styles.description.base, __styles.description[size]].join(' ')}>
+                <div className={[__styles.description.base, __styles.description[size]].join(' ')}>
                   {description}
-                </p>
+                </div>
               )}
             </div>
             {optionalLabel && (
