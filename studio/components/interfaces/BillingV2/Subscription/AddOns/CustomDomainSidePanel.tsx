@@ -16,11 +16,10 @@ const CustomDomainSidePanel = ({ visible, onClose }: CustomDomainSidePanelProps)
 
   const availableOptions =
     (addons?.available_addons ?? []).find((addon) => addon.type === 'custom_domain')?.variants ?? []
-  console.log({ availableOptions })
 
   return (
     <SidePanel
-      size="xxlarge"
+      size="large"
       visible={visible}
       onCancel={onClose}
       header={
@@ -53,7 +52,7 @@ const CustomDomainSidePanel = ({ visible, onClose }: CustomDomainSidePanelProps)
             <Radio.Group type="large-cards" size="tiny" id="custom-domain">
               <Radio
                 name="custom-domain"
-                className="col-span-3"
+                className="col-span-4"
                 label={<span className="text-sm">No custom domain</span>}
                 value="cd_none"
                 description={
@@ -65,7 +64,7 @@ const CustomDomainSidePanel = ({ visible, onClose }: CustomDomainSidePanelProps)
               />
               {availableOptions.map((option) => (
                 <Radio
-                  className="col-span-3"
+                  className="col-span-4"
                   name="custom-domain"
                   key={option.identifier}
                   label={<span className="text-sm">{option.name}</span>}
