@@ -163,8 +163,10 @@ const AddOns = ({}: AddOnsProps) => {
                   <p className="text-sm text-scale-1000">Point in time recovery</p>
                   <p className="">
                     {pitr !== undefined
-                      ? 'Point in time recovery is enabled'
-                      : 'No point in time recovery available'}
+                      ? `Point in time recovery of ${
+                          pitr.variant.identifier.split('_')[1]
+                        } days is enabled`
+                      : 'Point in time recovery is not enabled'}
                   </p>
                   <Button type="default" className="mt-2" onClick={() => setAddonUpdate('pitr')}>
                     Change point in time recovery

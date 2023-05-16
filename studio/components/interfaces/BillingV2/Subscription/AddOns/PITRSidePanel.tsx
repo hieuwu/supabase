@@ -1,5 +1,8 @@
 import { useParams } from 'common'
+import { useProjectAddonRemoveMutation } from 'data/subscriptions/project-addon-remove-mutation'
+import { useProjectAddonUpdateMutation } from 'data/subscriptions/project-addon-update-mutation'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
+import { useStore } from 'hooks'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Alert, Button, IconExternalLink, Radio, SidePanel } from 'ui'
@@ -10,18 +13,23 @@ export interface PITRSidePanelProps {
 }
 
 const PITRSidePanel = ({ visible, onClose }: PITRSidePanelProps) => {
+  const { ui } = useStore()
   const { ref: projectRef } = useParams()
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedOption, setSelectedOption] = useState<string>('pitr_0')
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
+  const { mutateAsync: updateAddon } = useProjectAddonUpdateMutation()
+  const { mutateAsync: removeAddon } = useProjectAddonRemoveMutation()
 
-  const subscriptionCompute = (addons?.selected_addons ?? []).find(
-    (addon) => addon.type === 'compute_instance'
-  )
-  const subscriptionPitr = (addons?.selected_addons ?? []).find((addon) => addon.type === 'pitr')
-  const availableOptions =
-    (addons?.available_addons ?? []).find((addon) => addon.type === 'pitr')?.variants ?? []
+  const selectedAddons = addons?.selected_addons ?? []
+  const availableAddons = addons?.available_addons ?? []
+
+  const subscriptionCompute = selectedAddons.find((addon) => addon.type === 'compute_instance')
+  const subscriptionPitr = selectedAddons.find((addon) => addon.type === 'pitr')
+  const availableOptions = availableAddons.find((addon) => addon.type === 'pitr')?.variants ?? []
 
   const hasChanges = selectedOption !== (subscriptionPitr?.variant.identifier ?? 'pitr_0')
+  const selectedPitr = availableOptions.find((option) => option.identifier === selectedOption)
 
   useEffect(() => {
     if (visible) {
@@ -33,13 +41,44 @@ const PITRSidePanel = ({ visible, onClose }: PITRSidePanelProps) => {
     }
   }, [visible, isLoading])
 
+  const onConfirm = async () => {
+    if (!projectRef) return console.error('Project ref is required')
+
+    try {
+      setIsSubmitting(true)
+
+      if (selectedOption === 'pitr_0' && subscriptionPitr !== undefined) {
+        await removeAddon({ projectRef, variant: subscriptionPitr.variant.identifier })
+      } else {
+        await updateAddon({ projectRef, type: 'pitr', variant: selectedOption })
+      }
+
+      ui.setNotification({
+        category: 'success',
+        message: `Successfully ${
+          selectedOption === 'pitr_0' ? 'disabled' : 'updated'
+        } point in time recovery duration`,
+      })
+      onClose()
+    } catch (error: any) {
+      ui.setNotification({
+        error,
+        category: 'error',
+        message: `Unable to update PITR: ${error.message}`,
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <SidePanel
       size="xxlarge"
       visible={visible}
       onCancel={onClose}
-      loading={isLoading}
-      disabled={isLoading || !hasChanges}
+      onConfirm={onConfirm}
+      loading={isLoading || isSubmitting}
+      disabled={isLoading || !hasChanges || isSubmitting}
       header={
         <div className="flex items-center justify-between">
           <h4>Point in Time Recovery</h4>
@@ -125,10 +164,14 @@ const PITRSidePanel = ({ visible, onClose }: PITRSidePanelProps) => {
           </div>
 
           {hasChanges && (
-            <p className="text-sm">
-              Upon clicking confirm, the amount of $XX will be added to your invoice and your credit
-              card will be charged immediately.
-            </p>
+            <>
+              <p className="text-sm">
+                {selectedOption === 'pitr_0' ||
+                (selectedPitr?.price ?? 0) < (subscriptionPitr?.variant.price ?? 0)
+                  ? 'Upon clicking confirm, the amount of $XX (pro-rated) will be returned as credits that can be used for subsequent billing cycles'
+                  : 'Upon clicking confirm, the amount of $XX will be added to your invoice and your credit card will be charged immediately'}
+              </p>
+            </>
           )}
         </div>
       </SidePanel.Content>

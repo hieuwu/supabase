@@ -43,7 +43,8 @@ export const useProjectAddonRemoveMutation = ({
     {
       async onSuccess(data, variables, context) {
         const { projectRef } = variables
-        // [Joshen] To check - do we update add on? or update subscription, or both
+        // [Joshen] Only invalidate addons, not subscriptions, as AddOn section in
+        // subscription page is using AddOn react query
         await queryClient.invalidateQueries(subscriptionKeys.addons(projectRef))
         await onSuccess?.(data, variables, context)
       },
