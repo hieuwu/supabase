@@ -90,12 +90,10 @@ const PITRSidePanel = ({ visible, onClose }: PITRSidePanelProps) => {
                   label={<span className="text-sm">{option.name}</span>}
                   value={option.identifier}
                   afterLabel={
-                    <div>
-                      <p className="text-scale-1000">
-                        Allow database restorations to any time up to{' '}
-                        {option.identifier.split('_')[1]} days ago
-                      </p>
-                    </div>
+                    <p className="text-scale-1000">
+                      Allow database restorations to any time up to{' '}
+                      {option.identifier.split('_')[1]} days ago
+                    </p>
                   }
                   description={
                     <div className="flex items-center space-x-1">
