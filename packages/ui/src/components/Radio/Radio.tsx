@@ -135,7 +135,7 @@ function RadioGroup({
 }
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
-  label: string
+  label: string | React.ReactNode
   afterLabel?: string | React.ReactNode
   beforeLabel?: string | React.ReactNode
   description?: string | React.ReactNode
@@ -261,7 +261,7 @@ function Radio({
                   {beforeLabel}
                 </div>
               )}
-              <span>{label}</span>
+              <div>{label}</div>
               {afterLabel && (
                 <div className={[__styles.label_after.base, __styles.label_after[size]].join(' ')}>
                   {afterLabel}

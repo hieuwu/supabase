@@ -1111,7 +1111,7 @@ export default {
     non_responsive: 'grid grid-cols-12 gap-2',
 
     labels_horizontal_layout: 'flex flex-row space-x-2 justify-between col-span-12',
-    labels_vertical_layout: 'flex flex-col space-y-2 col-span-4',
+    labels_vertical_layout: 'flex flex-col space-y-2 col-span-5',
 
     data_input_horizontal_layout: 'col-span-12',
 

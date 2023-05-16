@@ -53,20 +53,20 @@ const AddOns = ({}: AddOnsProps) => {
                   </Link>
                 </div>
                 <div>
-                  <Link href="https://supabase.com/docs/guides/platform/custom-domains">
+                  <Link href="https://supabase.com/docs/guides/platform/backups#point-in-time-recovery">
                     <a target="_blank" rel="noreferrer">
                       <div className="flex items-center space-x-2 opacity-50 hover:opacity-100 transition">
-                        <p className="text-sm">About custom domains</p>
+                        <p className="text-sm">About PITR backups</p>
                         <IconExternalLink size={16} strokeWidth={1.5} />
                       </div>
                     </a>
                   </Link>
                 </div>
                 <div>
-                  <Link href="https://supabase.com/docs/guides/platform/backups">
+                  <Link href="https://supabase.com/docs/guides/platform/custom-domains">
                     <a target="_blank" rel="noreferrer">
                       <div className="flex items-center space-x-2 opacity-50 hover:opacity-100 transition">
-                        <p className="text-sm">About PITR backups</p>
+                        <p className="text-sm">About custom domains</p>
                         <IconExternalLink size={16} strokeWidth={1.5} />
                       </div>
                     </a>
