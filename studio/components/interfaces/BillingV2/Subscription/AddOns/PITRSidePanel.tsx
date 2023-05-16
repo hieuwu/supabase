@@ -24,8 +24,12 @@ const PITRSidePanel = ({ visible, onClose }: PITRSidePanelProps) => {
   const hasChanges = selectedOption !== (subscriptionPitr?.variant.identifier ?? 'pitr_0')
 
   useEffect(() => {
-    if (visible && subscriptionPitr !== undefined) {
-      setSelectedOption(subscriptionPitr.variant.identifier)
+    if (visible) {
+      if (subscriptionPitr !== undefined) {
+        setSelectedOption(subscriptionPitr.variant.identifier)
+      } else {
+        setSelectedOption('pitr_0')
+      }
     }
   }, [visible, isLoading])
 

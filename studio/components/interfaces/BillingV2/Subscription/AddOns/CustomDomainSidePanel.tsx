@@ -1,5 +1,8 @@
 import { useParams } from 'common'
+import { useProjectAddonRemoveMutation } from 'data/subscriptions/project-addon-remove-mutation'
+import { useProjectAddonUpdateMutation } from 'data/subscriptions/project-addon-update-mutation'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
+import { useStore } from 'hooks'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Button, IconExternalLink, Radio, SidePanel } from 'ui'
@@ -10,9 +13,13 @@ export interface CustomDomainSidePanelProps {
 }
 
 const CustomDomainSidePanel = ({ visible, onClose }: CustomDomainSidePanelProps) => {
+  const { ui } = useStore()
   const { ref: projectRef } = useParams()
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [selectedOption, setSelectedOption] = useState<string>('cd_none')
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
+  const { mutateAsync: updateAddon } = useProjectAddonUpdateMutation()
+  const { mutateAsync: removeAddon } = useProjectAddonRemoveMutation()
 
   const subscriptionCDOption = (addons?.selected_addons ?? []).find(
     (addon) => addon.type === 'custom_domain'
@@ -23,18 +30,53 @@ const CustomDomainSidePanel = ({ visible, onClose }: CustomDomainSidePanelProps)
   const hasChanges = selectedOption !== (subscriptionCDOption?.variant.identifier ?? 'cd_none')
 
   useEffect(() => {
-    if (visible && subscriptionCDOption !== undefined) {
-      setSelectedOption(subscriptionCDOption.variant.identifier)
+    if (visible) {
+      if (subscriptionCDOption !== undefined) {
+        setSelectedOption(subscriptionCDOption.variant.identifier)
+      } else {
+        setSelectedOption('cd_none')
+      }
     }
   }, [visible, isLoading])
+
+  const onConfirm = async () => {
+    if (!projectRef) return console.error('Project ref is required')
+
+    try {
+      setIsSubmitting(true)
+
+      if (selectedOption === 'cd_none' && subscriptionCDOption !== undefined) {
+        await removeAddon({ projectRef, variant: subscriptionCDOption.variant.identifier })
+      } else {
+        await updateAddon({ projectRef, type: 'custom_domain', variant: selectedOption })
+      }
+
+      ui.setNotification({
+        category: 'success',
+        message: `Successfully ${
+          selectedOption === 'cd_none' ? 'disabled' : 'enabled'
+        } custom domain`,
+      })
+      onClose()
+    } catch (error: any) {
+      ui.setNotification({
+        error,
+        category: 'error',
+        message: `Unable to update custom domain: ${error.message}`,
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <SidePanel
       size="large"
       visible={visible}
       onCancel={onClose}
-      loading={isLoading}
-      disabled={isLoading || !hasChanges}
+      onConfirm={onConfirm}
+      loading={isLoading || isSubmitting}
+      disabled={isLoading || !hasChanges || isSubmitting}
       header={
         <div className="flex items-center justify-between">
           <h4>Custom domains</h4>
@@ -104,10 +146,13 @@ const CustomDomainSidePanel = ({ visible, onClose }: CustomDomainSidePanelProps)
           </div>
 
           {hasChanges && (
-            <p className="text-sm">
-              Upon clicking confirm, the amount of $XX will be added to your invoice and your credit
-              card will be charged immediately.
-            </p>
+            <>
+              <p className="text-sm">
+                {selectedOption === 'cd_none'
+                  ? 'Upon clicking confirm, the amount of $XX (pro-rated) will be returned as credits that can be used for subsequent billing cycles'
+                  : 'Upon clicking confirm, the amount of $XX will be added to your invoice and your credit card will be charged immediately'}
+              </p>
+            </>
           )}
         </div>
       </SidePanel.Content>

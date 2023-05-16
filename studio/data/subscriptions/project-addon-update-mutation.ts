@@ -23,8 +23,8 @@ export async function updateSubscriptionAddon({
   if (!type) throw new Error('type is required')
 
   const response = (await post(`${API_URL}/projects/${projectRef}/billing/addons`, {
-    variant,
-    type,
+    addon_type: type,
+    addon_variant: variant,
   })) as ProjectAddonUpdateResponse
   if (response.error) throw response.error
 

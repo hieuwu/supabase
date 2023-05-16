@@ -150,6 +150,16 @@ const SpendCapSidePanel = ({ visible, onClose }: SpendCapSidePanelProps) => {
               project could become unresponsive
             </Alert>
           )}
+
+          {hasChanges && (
+            <>
+              <p className="text-sm">
+                {selectedOption === 'on'
+                  ? 'Upon clicking confirm, spend cap will be enabled for your project and you will no longer be charged any extra for usage.'
+                  : 'Upon clicking confirm, spend cap will be disabled for your project and you will be charged for any usage above the free quota allowance'}
+              </p>
+            </>
+          )}
         </div>
       </SidePanel.Content>
     </SidePanel>

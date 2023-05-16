@@ -23,8 +23,12 @@ const ComputeInstanceSidePanel = ({ visible, onClose }: ComputeInstanceSidePanel
   const hasChanges = selectedOption !== (subscriptionCompute?.variant.identifier ?? 'ci_micro')
 
   useEffect(() => {
-    if (visible && subscriptionCompute !== undefined) {
-      setSelectedOption(subscriptionCompute.variant.identifier)
+    if (visible) {
+      if (subscriptionCompute !== undefined) {
+        setSelectedOption(subscriptionCompute.variant.identifier)
+      } else {
+        setSelectedOption('ci_micro')
+      }
     }
   }, [visible, isLoading])
 
