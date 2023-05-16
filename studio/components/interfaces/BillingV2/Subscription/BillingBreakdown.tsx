@@ -174,7 +174,7 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
               {/* Tier */}
               <BillingBreakdownRow
                 name={subscription?.tier.name}
-                cost={(subscription?.tier.unit_amount ?? 0) / 100}
+                cost={subscription?.tier.price ?? 0}
               />
               {/* Compute */}
               {computeInstance !== undefined ? (

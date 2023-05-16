@@ -1,7 +1,7 @@
 import { useParams } from 'common'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Alert, Button, IconExternalLink, Radio, SidePanel } from 'ui'
 
 export interface ComputeInstanceSidePanelProps {
@@ -11,18 +11,30 @@ export interface ComputeInstanceSidePanelProps {
 
 const ComputeInstanceSidePanel = ({ visible, onClose }: ComputeInstanceSidePanelProps) => {
   const { ref: projectRef } = useParams()
-  const [selectedOption, setSelectedOption] = useState()
+  const [selectedOption, setSelectedOption] = useState<string>('ci_micro')
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
 
+  const subscriptionCompute = (addons?.selected_addons ?? []).find(
+    (addon) => addon.type === 'compute_instance'
+  )
   const availableOptions =
     (addons?.available_addons ?? []).find((addon) => addon.type === 'compute_instance')?.variants ??
     []
+  const hasChanges = selectedOption !== (subscriptionCompute?.variant.identifier ?? 'ci_micro')
+
+  useEffect(() => {
+    if (visible && subscriptionCompute !== undefined) {
+      setSelectedOption(subscriptionCompute.variant.identifier)
+    }
+  }, [visible, isLoading])
 
   return (
     <SidePanel
       size="xxlarge"
       visible={visible}
       onCancel={onClose}
+      loading={isLoading}
+      disabled={isLoading || !hasChanges}
       header={
         <div className="flex items-center justify-between">
           <h4>Change project compute size</h4>
@@ -48,9 +60,11 @@ const ComputeInstanceSidePanel = ({ visible, onClose }: ComputeInstanceSidePanel
               size="tiny"
               id="compute-instance"
               label="Choose the compute size you want to use"
+              onChange={(event: any) => setSelectedOption(event.target.value)}
             >
               <Radio
                 className="col-span-3"
+                checked={selectedOption === 'ci_micro'}
                 label={<span className="text-sm">Micro Compute Instance</span>}
                 value="ci_micro"
                 afterLabel={
@@ -71,6 +85,7 @@ const ComputeInstanceSidePanel = ({ visible, onClose }: ComputeInstanceSidePanel
                   className="col-span-3"
                   name="compute-instance"
                   key={option.identifier}
+                  checked={selectedOption === option.identifier}
                   label={<span className="text-sm">{option.name}</span>}
                   value={option.identifier}
                   afterLabel={
@@ -93,11 +108,6 @@ const ComputeInstanceSidePanel = ({ visible, onClose }: ComputeInstanceSidePanel
             </Radio.Group>
           </div>
 
-          <p className="text-sm">
-            Upon clicking confirm, the amount of $XX will be added to your invoice and your credit
-            card will be charged immediately.
-          </p>
-
           <Alert
             withIcon
             variant="info"
@@ -106,6 +116,13 @@ const ComputeInstanceSidePanel = ({ visible, onClose }: ComputeInstanceSidePanel
             It will take up to 2 minutes for changes to take place, in which your project will be
             unavailable during that time.
           </Alert>
+
+          {hasChanges && (
+            <p className="text-sm">
+              Upon clicking confirm, the amount of $XX will be added to your invoice and your credit
+              card will be charged immediately.
+            </p>
+          )}
         </div>
       </SidePanel.Content>
     </SidePanel>

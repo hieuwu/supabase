@@ -17,7 +17,6 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
   const { data: subscription, isLoading } = useProjectSubscriptionV2Query({ projectRef })
 
   const userIsOnTeamTier = subscription?.tier?.supabase_prod_id === PRICING_TIER_PRODUCT_IDS.TEAM
-  // const teamTierEnabled = false
   const teamTierEnabled = useFlag('teamTier') || userIsOnTeamTier
 
   return (
@@ -73,7 +72,12 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
                     <p className="text-scale-1200 text-lg">${plan.price}</p>
                     <p className="text-scale-1000 text-sm">per month</p>
                   </div>
-                  <div className={clsx('flex mt-1 mb-4', (plan.price ?? 0) === 0 && 'opacity-0')}>
+                  <div
+                    className={clsx(
+                      'flex mt-1 mb-4',
+                      plan.id !== PRICING_TIER_PRODUCT_IDS.TEAM && 'opacity-0'
+                    )}
+                  >
                     <div className="text-xs bg-brand-400 text-brand-900 rounded px-2 py-0.5">
                       Usage based plan
                     </div>
@@ -83,7 +87,7 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
                       Current plan
                     </Button>
                   ) : (
-                    <Button block type="primary">
+                    <Button block type="primary" loading={isLoading} disabled={isLoading}>
                       {subscription?.tier.supabase_prod_id !== PRICING_TIER_PRODUCT_IDS.FREE &&
                       plan.id === PRICING_TIER_PRODUCT_IDS.FREE
                         ? 'Downgrade'

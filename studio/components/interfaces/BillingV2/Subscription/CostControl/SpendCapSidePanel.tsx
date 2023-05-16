@@ -1,22 +1,51 @@
+import clsx from 'clsx'
 import { useParams } from 'common'
-import { BASE_PATH } from 'lib/constants'
+import { BASE_PATH, PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
-import { Button, IconExternalLink, Radio, SidePanel } from 'ui'
+import { useEffect, useState } from 'react'
+import { Alert, Button, IconExternalLink, SidePanel } from 'ui'
+import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 
 export interface SpendCapSidePanelProps {
   visible: boolean
   onClose: () => void
 }
 
+const SPEND_CAP_OPTIONS: { name: string; value: 'on' | 'off'; imageUrl: string }[] = [
+  {
+    name: 'Spend cap on',
+    value: 'on',
+    imageUrl: `${BASE_PATH}/img/spend-cap-on.svg`,
+  },
+  {
+    name: 'Spend cap off',
+    value: 'off',
+    imageUrl: `${BASE_PATH}/img/spend-cap-off.svg`,
+  },
+]
+
 const SpendCapSidePanel = ({ visible, onClose }: SpendCapSidePanelProps) => {
   const { ref: projectRef } = useParams()
-  const [selectedOption, setSelectedOption] = useState()
+  const [selectedOption, setSelectedOption] = useState<'on' | 'off'>()
+  const { data: subscription, isLoading } = useProjectSubscriptionV2Query({ projectRef })
+
+  const isSpendCapOn = [PRICING_TIER_PRODUCT_IDS.FREE, PRICING_TIER_PRODUCT_IDS.PRO].includes(
+    subscription?.tier?.supabase_prod_id ?? ''
+  )
+  const isTurningOnCap = !isSpendCapOn && selectedOption === 'on'
+  const hasChanges = selectedOption !== (isSpendCapOn ? 'on' : 'off')
+
+  useEffect(() => {
+    if (visible && subscription !== undefined) {
+      setSelectedOption(isSpendCapOn ? 'on' : 'off')
+    }
+  }, [visible, isLoading])
 
   return (
     <SidePanel
       size="large"
+      disabled={!hasChanges}
       visible={visible}
       onCancel={onClose}
       header={
@@ -47,38 +76,48 @@ const SpendCapSidePanel = ({ visible, onClose }: SpendCapSidePanelProps) => {
 
           <div className="!mt-8 pb-4">
             <div className="grid grid-cols-12 gap-3">
-              <div className="col-span-4 group space-y-1">
-                <div
-                  className="relative cursor-pointer rounded-xl transition border border-transparent group-hover:border-scale-1100"
-                  style={{ aspectRatio: ' 160/96' }}
-                >
-                  <Image
-                    layout="fill"
-                    objectFit="contain"
-                    src={`${BASE_PATH}/img/spend-cap-on.svg`}
-                  />
-                </div>
-                <p className="text-sm text-scale-1000 group-hover:text-scale-1200 transition">
-                  Spend cap on
-                </p>
-              </div>
-              <div className="col-span-4 group space-y-1">
-                <div
-                  className="relative cursor-pointer rounded-xl transition border border-transparent group-hover:border-scale-1100"
-                  style={{ aspectRatio: ' 160/96' }}
-                >
-                  <Image
-                    layout="fill"
-                    objectFit="contain"
-                    src={`${BASE_PATH}/img/spend-cap-off.svg`}
-                  />
-                </div>
-                <p className="text-sm text-scale-1000 group-hover:text-scale-1200 transition">
-                  Spend cap off
-                </p>
-              </div>
+              {SPEND_CAP_OPTIONS.map((option) => {
+                const isSelected = selectedOption === option.value
+
+                return (
+                  <div
+                    key={option.value}
+                    className="col-span-4 group space-y-1"
+                    onClick={() => setSelectedOption(option.value)}
+                  >
+                    <div
+                      style={{ aspectRatio: ' 160/96' }}
+                      className={clsx(
+                        'relative cursor-pointer rounded-xl transition border  group-hover:border-scale-1100',
+                        isSelected ? 'border-scale-1200' : 'border-transparent'
+                      )}
+                    >
+                      <Image layout="fill" objectFit="contain" src={option.imageUrl} />
+                    </div>
+                    <p
+                      className={clsx(
+                        'text-sm group-hover:text-scale-1200 transition',
+                        isSelected ? 'text-scale-1200' : 'text-scale-1000'
+                      )}
+                    >
+                      {option.name}
+                    </p>
+                  </div>
+                )
+              })}
             </div>
           </div>
+
+          {isTurningOnCap && (
+            <Alert
+              withIcon
+              variant="warning"
+              title="Your project could become unresponsive, enter read only mode, or be paused"
+            >
+              If you exceed the free quota allowance set out for your subscription tier, then your
+              project could become unresponsive
+            </Alert>
+          )}
         </div>
       </SidePanel.Content>
     </SidePanel>

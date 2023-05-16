@@ -19,12 +19,12 @@ export type ProjectSubscriptionResponse = {
   tier: {
     name: string
     supabase_prod_id: string
-    unit_amount: number
+    price: number
   }
   addons: {
     name: string
     supabase_prod_id: string
-    unit_amount: number
+    price: number
   }[]
   usage_fees: {
     metric: string

@@ -3,7 +3,7 @@ import ShimmeringLoader from 'components/ui/ShimmeringLoader'
 import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import { BASE_PATH, PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import Image from 'next/image'
-import { Button, IconAlertCircle } from 'ui'
+import { Alert, Button, IconAlertCircle } from 'ui'
 import SpendCapSidePanel from './SpendCapSidePanel'
 import { useState } from 'react'
 
@@ -56,6 +56,19 @@ const CostControl = ({}: CostControlProps) => {
                 </div>
               </div>
             )}
+
+            {currentTier === PRICING_TIER_PRODUCT_IDS.TEAM && (
+              <Alert
+                withIcon
+                variant="info"
+                title="You will be charged for any additional usage on the Team plan"
+              >
+                Team plan requires you to have spend cap off at all times. Your project will never
+                become unresponsive or be paused. Only when your included usage is exceeded will you
+                be charged for any additional usage
+              </Alert>
+            )}
+
             <div className="flex space-x-6">
               <div>
                 <div className="rounded-md w-[160px] h-[96px] shadow">
@@ -83,7 +96,12 @@ const CostControl = ({}: CostControlProps) => {
                     reaches the quota limit will you be charged for any excess usage.
                   </p>
                 )}
-                <Button type="default" className="mt-4" onClick={() => setShowSpendCapPanel(true)}>
+                <Button
+                  type="default"
+                  className="mt-4"
+                  disabled={currentTier === PRICING_TIER_PRODUCT_IDS.TEAM}
+                  onClick={() => setShowSpendCapPanel(true)}
+                >
                   Change spend cap
                 </Button>
               </div>

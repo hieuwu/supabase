@@ -1,7 +1,7 @@
 import { useParams } from 'common'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button, IconExternalLink, Radio, SidePanel } from 'ui'
 
 export interface CustomDomainSidePanelProps {
@@ -11,17 +11,30 @@ export interface CustomDomainSidePanelProps {
 
 const CustomDomainSidePanel = ({ visible, onClose }: CustomDomainSidePanelProps) => {
   const { ref: projectRef } = useParams()
-  const [selectedOption, setSelectedOption] = useState()
+  const [selectedOption, setSelectedOption] = useState<string>('cd_none')
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
 
+  const subscriptionCDOption = (addons?.selected_addons ?? []).find(
+    (addon) => addon.type === 'custom_domain'
+  )
   const availableOptions =
     (addons?.available_addons ?? []).find((addon) => addon.type === 'custom_domain')?.variants ?? []
+
+  const hasChanges = selectedOption !== (subscriptionCDOption?.variant.identifier ?? 'cd_none')
+
+  useEffect(() => {
+    if (visible && subscriptionCDOption !== undefined) {
+      setSelectedOption(subscriptionCDOption.variant.identifier)
+    }
+  }, [visible, isLoading])
 
   return (
     <SidePanel
       size="large"
       visible={visible}
       onCancel={onClose}
+      loading={isLoading}
+      disabled={isLoading || !hasChanges}
       header={
         <div className="flex items-center justify-between">
           <h4>Custom domains</h4>
@@ -49,9 +62,15 @@ const CustomDomainSidePanel = ({ visible, onClose }: CustomDomainSidePanelProps)
           <p className="text-sm">Your project can be upgraded to enable custom domains.</p>
 
           <div className="!mt-8 pb-4">
-            <Radio.Group type="large-cards" size="tiny" id="custom-domain">
+            <Radio.Group
+              type="large-cards"
+              size="tiny"
+              id="custom-domain"
+              onChange={(event: any) => setSelectedOption(event.target.value)}
+            >
               <Radio
                 name="custom-domain"
+                checked={selectedOption === 'cd_none'}
                 className="col-span-4"
                 label={<span className="text-sm">No custom domain</span>}
                 value="cd_none"
@@ -67,6 +86,7 @@ const CustomDomainSidePanel = ({ visible, onClose }: CustomDomainSidePanelProps)
                   className="col-span-4"
                   name="custom-domain"
                   key={option.identifier}
+                  checked={selectedOption === option.identifier}
                   label={<span className="text-sm">{option.name}</span>}
                   value={option.identifier}
                   afterLabel={
@@ -83,10 +103,12 @@ const CustomDomainSidePanel = ({ visible, onClose }: CustomDomainSidePanelProps)
             </Radio.Group>
           </div>
 
-          <p className="text-sm">
-            Upon clicking confirm, the amount of $XX will be added to your invoice and your credit
-            card will be charged immediately.
-          </p>
+          {hasChanges && (
+            <p className="text-sm">
+              Upon clicking confirm, the amount of $XX will be added to your invoice and your credit
+              card will be charged immediately.
+            </p>
+          )}
         </div>
       </SidePanel.Content>
     </SidePanel>

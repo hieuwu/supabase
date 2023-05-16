@@ -18,6 +18,7 @@ interface RadixProps
 
 interface CustomProps {
   id?: String | undefined
+  disabled?: boolean
   className?: String
   children?: React.ReactNode
   header?: string | React.ReactNode
@@ -36,6 +37,7 @@ interface CustomProps {
 
 const SidePanel = ({
   id,
+  disabled,
   className,
   children,
   header,
@@ -69,7 +71,7 @@ const SidePanel = ({
       </Button>
       <Button
         htmlType="submit"
-        disabled={loading}
+        disabled={disabled || loading}
         loading={loading}
         onClick={() => (onConfirm ? onConfirm() : null)}
       >

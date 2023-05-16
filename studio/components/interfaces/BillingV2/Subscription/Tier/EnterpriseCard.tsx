@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { Button, IconCheck } from 'ui'
 import { PricingInformation } from './Tier.constants'
+import Link from 'next/link'
 
 export interface EnterpriseCardProps {
   plan: PricingInformation
@@ -35,9 +36,13 @@ const EnterpriseCard = ({ plan, isCurrentPlan, isTeamTierEnabled }: EnterpriseCa
 
         <p className="text-sm mt-2 mb-4">{plan.preface}</p>
 
-        <Button block={!isTeamTierEnabled} type="default">
-          Contact 24hr Sales Team
-        </Button>
+        <Link href="https://supabase.com/contact/enterprise">
+          <a target="blank" rel="noreferrer">
+            <Button block={!isTeamTierEnabled} type="default">
+              Contact 24hr Sales Team
+            </Button>
+          </a>
+        </Link>
       </div>
 
       {!isTeamTierEnabled && <div className="border-t my-6" />}

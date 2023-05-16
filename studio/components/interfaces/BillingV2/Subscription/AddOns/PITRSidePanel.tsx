@@ -1,7 +1,7 @@
 import { useParams } from 'common'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Alert, Button, IconExternalLink, Radio, SidePanel } from 'ui'
 
 export interface PITRSidePanelProps {
@@ -11,20 +11,31 @@ export interface PITRSidePanelProps {
 
 const PITRSidePanel = ({ visible, onClose }: PITRSidePanelProps) => {
   const { ref: projectRef } = useParams()
-  const [selectedOption, setSelectedOption] = useState()
+  const [selectedOption, setSelectedOption] = useState<string>('pitr_0')
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
 
-  const selectedCompute = (addons?.selected_addons ?? []).find(
+  const subscriptionCompute = (addons?.selected_addons ?? []).find(
     (addon) => addon.type === 'compute_instance'
   )
+  const subscriptionPitr = (addons?.selected_addons ?? []).find((addon) => addon.type === 'pitr')
   const availableOptions =
     (addons?.available_addons ?? []).find((addon) => addon.type === 'pitr')?.variants ?? []
+
+  const hasChanges = selectedOption !== (subscriptionPitr?.variant.identifier ?? 'pitr_0')
+
+  useEffect(() => {
+    if (visible && subscriptionPitr !== undefined) {
+      setSelectedOption(subscriptionPitr.variant.identifier)
+    }
+  }, [visible, isLoading])
 
   return (
     <SidePanel
       size="xxlarge"
       visible={visible}
       onCancel={onClose}
+      loading={isLoading}
+      disabled={isLoading || !hasChanges}
       header={
         <div className="flex items-center justify-between">
           <h4>Point in Time Recovery</h4>
@@ -46,7 +57,7 @@ const PITRSidePanel = ({ visible, onClose }: PITRSidePanelProps) => {
             in granularity.
           </p>
 
-          {selectedCompute === undefined ? (
+          {subscriptionCompute === undefined ? (
             <Alert
               withIcon
               variant="warning"
@@ -67,11 +78,13 @@ const PITRSidePanel = ({ visible, onClose }: PITRSidePanelProps) => {
               size="tiny"
               id="pitr"
               label="Choose the duration for point in time recovery that you want"
+              onChange={(event: any) => setSelectedOption(event.target.value)}
             >
               <Radio
-                disabled={selectedCompute === undefined}
+                disabled={subscriptionCompute === undefined}
                 name="pitr"
                 className="col-span-3"
+                checked={selectedOption === 'pitr_0'}
                 label={<span className="text-sm">No point in time recovery</span>}
                 value="pitr_0"
                 description={
@@ -83,10 +96,11 @@ const PITRSidePanel = ({ visible, onClose }: PITRSidePanelProps) => {
               />
               {availableOptions.map((option) => (
                 <Radio
-                  disabled={selectedCompute === undefined}
+                  disabled={subscriptionCompute === undefined}
                   className="col-span-3"
                   name="pitr"
                   key={option.identifier}
+                  checked={selectedOption === option.identifier}
                   label={<span className="text-sm">{option.name}</span>}
                   value={option.identifier}
                   afterLabel={
@@ -106,10 +120,12 @@ const PITRSidePanel = ({ visible, onClose }: PITRSidePanelProps) => {
             </Radio.Group>
           </div>
 
-          <p className="text-sm">
-            Upon clicking confirm, the amount of $XX will be added to your invoice and your credit
-            card will be charged immediately.
-          </p>
+          {hasChanges && (
+            <p className="text-sm">
+              Upon clicking confirm, the amount of $XX will be added to your invoice and your credit
+              card will be charged immediately.
+            </p>
+          )}
         </div>
       </SidePanel.Content>
     </SidePanel>
