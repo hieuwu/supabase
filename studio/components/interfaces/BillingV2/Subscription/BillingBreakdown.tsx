@@ -38,8 +38,6 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
   const totalUpcomingCost =
     subscription !== undefined ? calculateTotalCost(subscription, selectedAddons) : 0
 
-  console.log({ subscription, selectedAddons })
-
   return (
     <div className="grid grid-cols-12">
       <div className="col-span-5">

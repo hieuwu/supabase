@@ -35,6 +35,11 @@ const SubscriptionTier = ({}: SubscriptionTierProps) => {
   const daysToCycleEnd = billingCycleEnd.diff(dayjs(), 'days')
   const daysWithinCycle = billingCycleEnd.diff(billingCycleStart, 'days')
 
+  const canChangeTier = ![
+    PRICING_TIER_PRODUCT_IDS.TEAM,
+    PRICING_TIER_PRODUCT_IDS.ENTERPRISE,
+  ].includes(subscription?.tier.supabase_prod_id ?? '')
+
   return (
     <>
       <div className="grid grid-cols-12">
@@ -54,7 +59,12 @@ const SubscriptionTier = ({}: SubscriptionTierProps) => {
               <p className="text-2xl text-brand-900 uppercase">{tierName}</p>
             </div>
             <div>
-              <Button type="default" onClick={() => setShowUpdatePanel(true)}>
+              {/* [JOSHEN TODO] Add some tooltip */}
+              <Button
+                type="default"
+                disabled={!canChangeTier}
+                onClick={() => setShowUpdatePanel(true)}
+              >
                 Change subscription plan
               </Button>
             </div>

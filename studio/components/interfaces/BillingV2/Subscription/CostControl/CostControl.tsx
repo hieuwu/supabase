@@ -17,6 +17,11 @@ const CostControl = ({}: CostControlProps) => {
   const currentTier = subscription?.tier?.supabase_prod_id ?? ''
   const isUsageBillingEnabled = subscription?.usage_billing_enabled ?? false
 
+  const canChangeTier = ![
+    PRICING_TIER_PRODUCT_IDS.TEAM,
+    PRICING_TIER_PRODUCT_IDS.ENTERPRISE,
+  ].includes(currentTier)
+
   return (
     <>
       <div className="grid grid-cols-12">
@@ -96,10 +101,11 @@ const CostControl = ({}: CostControlProps) => {
                     reaches the quota limit will you be charged for any excess usage.
                   </p>
                 )}
+                {/* [JOSHEN TODO] Add a tooltip */}
                 <Button
                   type="default"
                   className="mt-4"
-                  disabled={currentTier === PRICING_TIER_PRODUCT_IDS.TEAM}
+                  disabled={!canChangeTier}
                   onClick={() => setShowSpendCapPanel(true)}
                 >
                   Change spend cap

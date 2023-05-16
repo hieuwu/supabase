@@ -1,11 +1,13 @@
 import clsx from 'clsx'
 import { useParams } from 'common'
+import { useProjectSubscriptionUpdateMutation } from 'data/subscriptions/project-subscription-update-mutation'
+import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
+import { useStore } from 'hooks'
 import { BASE_PATH, PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
-import Link from 'next/link'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Alert, Button, IconExternalLink, SidePanel } from 'ui'
-import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 
 export interface SpendCapSidePanelProps {
   visible: boolean
@@ -26,9 +28,12 @@ const SPEND_CAP_OPTIONS: { name: string; value: 'on' | 'off'; imageUrl: string }
 ]
 
 const SpendCapSidePanel = ({ visible, onClose }: SpendCapSidePanelProps) => {
+  const { ui } = useStore()
   const { ref: projectRef } = useParams()
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [selectedOption, setSelectedOption] = useState<'on' | 'off'>()
   const { data: subscription, isLoading } = useProjectSubscriptionV2Query({ projectRef })
+  const { mutateAsync: updateSubscriptionTier } = useProjectSubscriptionUpdateMutation()
 
   const isSpendCapOn = [PRICING_TIER_PRODUCT_IDS.FREE, PRICING_TIER_PRODUCT_IDS.PRO].includes(
     subscription?.tier?.supabase_prod_id ?? ''
@@ -42,12 +47,39 @@ const SpendCapSidePanel = ({ visible, onClose }: SpendCapSidePanelProps) => {
     }
   }, [visible, isLoading])
 
+  const onConfirm = async () => {
+    if (!projectRef) return console.error('Project ref is required')
+
+    try {
+      const tier = (
+        selectedOption === 'on' ? PRICING_TIER_PRODUCT_IDS.PRO : PRICING_TIER_PRODUCT_IDS.PAYG
+      ) as 'tier_pro' | 'tier_payg'
+      setIsSubmitting(true)
+      await updateSubscriptionTier({ projectRef, tier })
+      ui.setNotification({
+        category: 'success',
+        message: `Successfully ${isTurningOnCap ? 'enabled' : 'disabled'} spend cap`,
+      })
+      onClose()
+    } catch (error: any) {
+      ui.setNotification({
+        error,
+        category: 'error',
+        message: `Unable to toggle spend cap: ${error.message}`,
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <SidePanel
       size="large"
-      disabled={!hasChanges}
+      loading={isLoading || isSubmitting}
+      disabled={isLoading || !hasChanges || isSubmitting}
       visible={visible}
       onCancel={onClose}
+      onConfirm={onConfirm}
       header={
         <div className="flex items-center justify-between">
           <h4>Spend cap</h4>

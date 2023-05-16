@@ -29,7 +29,10 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
       <SidePanel.Content>
         <div className="py-6 grid grid-cols-12 gap-3">
           {Object.values(PRICING_META).map((plan) => {
-            const isCurrentPlan = subscription?.tier.supabase_prod_id === plan.id
+            const isCurrentPlan =
+              subscription?.tier.supabase_prod_id === plan.id ||
+              (subscription?.tier.supabase_prod_id === PRICING_TIER_PRODUCT_IDS.PAYG &&
+                plan.id === PRICING_TIER_PRODUCT_IDS.PRO)
 
             if (plan.id === 'tier_team' && !teamTierEnabled) return null
             if (plan.id === 'tier_enterprise') {
