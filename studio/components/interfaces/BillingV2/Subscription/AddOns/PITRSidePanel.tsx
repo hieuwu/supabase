@@ -1,8 +1,11 @@
+import Image from 'next/image'
+import clsx from 'clsx'
 import { useParams } from 'common'
 import { useProjectAddonRemoveMutation } from 'data/subscriptions/project-addon-remove-mutation'
 import { useProjectAddonUpdateMutation } from 'data/subscriptions/project-addon-update-mutation'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
 import { useStore } from 'hooks'
+import { BASE_PATH } from 'lib/constants'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Alert, Button, IconExternalLink, Radio, SidePanel } from 'ui'
@@ -12,11 +15,19 @@ export interface PITRSidePanelProps {
   onClose: () => void
 }
 
+const PITR_CATEGORY_OPTIONS: { id: 'off' | 'on'; name: string; imageUrl: string }[] = [
+  { id: 'off', name: 'No point in time recovery', imageUrl: `${BASE_PATH}/img/pitr-off.svg` },
+  { id: 'on', name: 'Enable point in time recovery', imageUrl: `${BASE_PATH}/img/pitr-on.svg` },
+]
+
 const PITRSidePanel = ({ visible, onClose }: PITRSidePanelProps) => {
   const { ui } = useStore()
   const { ref: projectRef } = useParams()
+
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<'on' | 'off'>('off')
   const [selectedOption, setSelectedOption] = useState<string>('pitr_0')
+
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
   const { mutateAsync: updateAddon } = useProjectAddonUpdateMutation()
   const { mutateAsync: removeAddon } = useProjectAddonRemoveMutation()
@@ -34,8 +45,10 @@ const PITRSidePanel = ({ visible, onClose }: PITRSidePanelProps) => {
   useEffect(() => {
     if (visible) {
       if (subscriptionPitr !== undefined) {
+        setSelectedCategory('on')
         setSelectedOption(subscriptionPitr.variant.identifier)
       } else {
+        setSelectedCategory('off')
         setSelectedOption('pitr_0')
       }
     }
@@ -100,7 +113,7 @@ const PITRSidePanel = ({ visible, onClose }: PITRSidePanelProps) => {
             in granularity.
           </p>
 
-          {subscriptionCompute === undefined ? (
+          {subscriptionCompute === undefined && (
             <Alert
               withIcon
               variant="warning"
@@ -108,69 +121,105 @@ const PITRSidePanel = ({ visible, onClose }: PITRSidePanelProps) => {
             >
               This is to ensure that your project has enough resources to execute PITR successfully
             </Alert>
-          ) : (
-            <p className="text-sm">
-              Your project can be upgraded to use point in time recovery for the following different
-              durations.
-            </p>
           )}
 
           <div className="!mt-8 pb-4">
-            <Radio.Group
-              type="large-cards"
-              size="tiny"
-              id="pitr"
-              label="Choose the duration for point in time recovery that you want"
-              onChange={(event: any) => setSelectedOption(event.target.value)}
-            >
-              <Radio
-                disabled={subscriptionCompute === undefined}
-                name="pitr"
-                className="col-span-3"
-                checked={selectedOption === 'pitr_0'}
-                label={<span className="text-sm">No point in time recovery</span>}
-                value="pitr_0"
-                description={
-                  <div className="flex items-center space-x-1">
-                    <p className="text-scale-1200 text-sm">$0</p>
-                    <p className="text-scale-1000 translate-y-[1px]">/ month</p>
-                  </div>
-                }
-              />
-              {availableOptions.map((option) => (
-                <Radio
-                  disabled={subscriptionCompute === undefined}
-                  className="col-span-3"
-                  name="pitr"
-                  key={option.identifier}
-                  checked={selectedOption === option.identifier}
-                  label={<span className="text-sm">{option.name}</span>}
-                  value={option.identifier}
-                  afterLabel={
-                    <p className="text-scale-1000">
-                      Allow database restorations to any time up to{' '}
-                      {option.identifier.split('_')[1]} days ago
-                    </p>
-                  }
-                  description={
-                    <div className="flex items-center space-x-1">
-                      <p className="text-scale-1200 text-sm">${option.price}</p>
-                      <p className="text-scale-1000 translate-y-[1px]"> / month</p>
+            <div className="grid grid-cols-12 gap-3">
+              {PITR_CATEGORY_OPTIONS.map((option) => {
+                const isSelected = selectedCategory === option.id
+                return (
+                  <div
+                    key={option.id}
+                    className="col-span-3 group space-y-1"
+                    onClick={() => {
+                      if (subscriptionCompute !== undefined) {
+                        setSelectedCategory(option.id)
+                        if (option.id === 'off') setSelectedOption('pitr_0')
+                      }
+                    }}
+                  >
+                    <div
+                      style={{ aspectRatio: ' 160/96' }}
+                      className={clsx(
+                        'relative cursor-pointer rounded-xl transition border',
+                        isSelected
+                          ? 'border-scale-1200'
+                          : 'border-transparent opacity-50 group-hover:opacity-100 group-hover:border-scale-1000'
+                      )}
+                    >
+                      <Image layout="fill" objectFit="contain" src={option.imageUrl} />
                     </div>
-                  }
-                />
-              ))}
-            </Radio.Group>
+                    <p
+                      className={clsx(
+                        'text-sm transition',
+                        isSelected ? 'text-scale-1200' : 'text-scale-1000'
+                      )}
+                    >
+                      {option.name}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
           </div>
+
+          {selectedCategory === 'on' && (
+            <div className="!mt-8 pb-4">
+              <Radio.Group
+                type="large-cards"
+                size="tiny"
+                id="pitr"
+                label={<p className="text-sm">Choose the duration for point in time recovery</p>}
+                onChange={(event: any) => setSelectedOption(event.target.value)}
+              >
+                {availableOptions.map((option) => (
+                  <Radio
+                    name="pitr"
+                    disabled={subscriptionCompute === undefined}
+                    className="col-span-3 !p-0"
+                    key={option.identifier}
+                    checked={selectedOption === option.identifier}
+                    label={<span className="text-sm">{option.name}</span>}
+                    value={option.identifier}
+                  >
+                    <div className="w-full group">
+                      <div className="border-b border-scale-500 px-4 py-2 group-hover:border-scale-600">
+                        <p className="text-sm">{option.name}</p>
+                      </div>
+                      <div className="px-4 py-2">
+                        <p className="text-scale-1000">
+                          Allow database restorations to any time up to{' '}
+                          {option.identifier.split('_')[1]} days ago
+                        </p>
+                        <div className="flex items-center space-x-1 mt-2">
+                          <p className="text-scale-1200 text-sm">
+                            ${option.price.toLocaleString()}
+                          </p>
+                          <p className="text-scale-1000 translate-y-[1px]"> / month</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Radio>
+                ))}
+              </Radio.Group>
+            </div>
+          )}
 
           {hasChanges && (
             <>
-              <p className="text-sm">
-                {selectedOption === 'pitr_0' ||
-                (selectedPitr?.price ?? 0) < (subscriptionPitr?.variant.price ?? 0)
-                  ? 'Upon clicking confirm, the amount of $XX (pro-rated) will be returned as credits that can be used for subsequent billing cycles'
-                  : 'Upon clicking confirm, the amount of $XX will be added to your invoice and your credit card will be charged immediately'}
-              </p>
+              {selectedOption === 'pitr_0' ||
+              (selectedPitr?.price ?? 0) < (subscriptionPitr?.variant.price ?? 0) ? (
+                <p className="text-sm text-scale-1100">
+                  Upon clicking confirm, the amount of $XX (pro-rated) will be returned as credits
+                  that can be used for subsequent billing cycles
+                </p>
+              ) : (
+                <p className="text-sm text-scale-1100">
+                  Upon clicking confirm, the amount of{' '}
+                  <span className="text-scale-1200">${selectedPitr?.price.toLocaleString()}</span>{' '}
+                  will be added to your invoice and your credit card will be charged immediately
+                </p>
+              )}
             </>
           )}
         </div>

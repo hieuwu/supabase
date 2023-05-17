@@ -29,10 +29,12 @@ const ComputeInstanceSidePanel = ({ visible, onClose }: ComputeInstanceSidePanel
   const { ui, app } = useStore()
   const router = useRouter()
   const { ref: projectRef } = useParams()
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<'micro' | 'optimized'>('micro')
   const [selectedOption, setSelectedOption] = useState<string>('ci_micro')
+
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
   const { mutateAsync: updateAddon } = useProjectAddonUpdateMutation()
   const { mutateAsync: removeAddon } = useProjectAddonRemoveMutation()

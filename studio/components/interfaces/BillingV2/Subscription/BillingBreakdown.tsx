@@ -178,7 +178,7 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
               </thead>
               <tbody>
                 {fixedFees.map((item) => (
-                  <tr className="border-b">
+                  <tr key={item.description} className="border-b">
                     <td className="py-2 text-sm">{item.description ?? 'Unknown'}</td>
                     <td className="py-2 text-sm">{item.quantity}</td>
                     <td className="py-2 text-sm">

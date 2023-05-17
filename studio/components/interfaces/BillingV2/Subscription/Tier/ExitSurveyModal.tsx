@@ -55,7 +55,7 @@ const ExitSurveyModal = ({ visible, onClose }: ExitSurveyModalProps) => {
     if (selectedReasons.length === 0) {
       return ui.setNotification({
         category: 'error',
-        message: 'Please select at least one reason for cancelling your subscription',
+        message: 'Please select at least one reason for canceling your subscription',
       })
     }
 
@@ -137,7 +137,7 @@ const ExitSurveyModal = ({ visible, onClose }: ExitSurveyModalProps) => {
         <div className="py-6">
           <p className="text-sm text-scale-1100">
             We always strive to improve Supabase as much as we can. Please let us know the reasons
-            you are cancelling your subscription so that we can improve in the future.
+            you are canceling your subscription so that we can improve in the future.
           </p>
           <div className="space-y-8 mt-6">
             <div className="flex flex-wrap gap-2" data-toggle="buttons">
