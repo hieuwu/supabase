@@ -1,23 +1,19 @@
-// Brought over from Plans.Constants.ts but ideally put in common folder (packages/data)
-
-import { STRIPE_PRODUCT_IDS } from 'lib/constants'
-
 export interface PricingInformation {
   id: string
   new: boolean
   name: string
-  price?: number
   preface?: string
   features: string[]
   footer?: string
 }
 
-export const PRICING_META = [
+// This only contains the meta information of plans like description and features, prices are from the API
+// Also ideally shift this to common folder (e.g packages/data)
+export const SUBSCRIPTION_PLANS: PricingInformation[] = [
   {
     id: 'tier_free',
     new: false,
     name: 'Free',
-    price: 0,
     preface: undefined,
     features: [
       'Unlimited API requests',
@@ -37,7 +33,6 @@ export const PRICING_META = [
     id: 'tier_pro',
     new: false,
     name: 'Pro',
-    price: 25,
     preface: undefined,
     features: [
       'Unlimited API requests',
@@ -60,7 +55,6 @@ export const PRICING_META = [
     id: 'tier_team',
     new: true,
     name: 'Team',
-    price: 599,
     preface: 'Everything in Pro, plus:',
     features: [
       'Read only member role',
@@ -80,7 +74,6 @@ export const PRICING_META = [
     id: 'tier_enterprise',
     new: false,
     name: 'Enterprise',
-    price: undefined,
     preface: 'For large-scale applications managing serious workloads',
     features: [`Designated Support manager & SLAs`, `SSO/ SAML`, `Custom contracts & invoicing`],
     footer: undefined,

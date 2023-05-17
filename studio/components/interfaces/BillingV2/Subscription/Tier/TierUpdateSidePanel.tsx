@@ -8,18 +8,18 @@ import { PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import { useEffect, useState } from 'react'
 import { Alert, Button, IconCheck, Modal, SidePanel } from 'ui'
 import EnterpriseCard from './EnterpriseCard'
-import { PRICING_META } from './Tier.constants'
+import { SUBSCRIPTION_PLANS } from './Tier.constants'
 import PaymentMethodSelection from './PaymentMethodSelection'
 import { useFreeProjectLimitCheckQuery } from 'data/organizations/free-project-limit-check-query'
 import MembersExceedLimitModal from './MembersExceedLimitModal'
 import ExitSurveyModal from './ExitSurveyModal'
+import { useProjectPlansQuery } from 'data/subscriptions/project-plans-query'
+import ShimmeringLoader from 'components/ui/ShimmeringLoader'
 
 export interface TierUpdateSidePanelProps {
   visible: boolean
   onClose: () => void
 }
-
-// [JOSHEN TODO] Pull plans from RQ with new endpoint instead of hardcoding
 
 const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => {
   const { ui } = useStore()
@@ -31,16 +31,22 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
   const [showDowngradeError, setShowDowngradeError] = useState(false)
   const [selectedTier, setSelectedTier] = useState<'tier_free' | 'tier_pro' | 'tier_team'>()
 
+  const { data: plans, isLoading: isLoadingPlans } = useProjectPlansQuery({ projectRef })
   const { data: addons } = useProjectAddonsQuery({ projectRef })
   const { data: membersExceededLimit } = useFreeProjectLimitCheckQuery({ slug })
   const { data: subscription, isLoading } = useProjectSubscriptionV2Query({ projectRef })
   const { mutateAsync: updateSubscriptionTier } = useProjectSubscriptionUpdateMutation()
 
+  const availablePlans = plans ?? []
   const subscriptionAddons = addons?.selected_addons ?? []
-  const selectedTierMeta = PRICING_META.find((tier) => tier.id === selectedTier)
   const userIsOnTeamTier = subscription?.tier?.supabase_prod_id === PRICING_TIER_PRODUCT_IDS.TEAM
+
   const teamTierEnabled = useFlag('teamTier') || userIsOnTeamTier
   const hasMembersExceedingFreeTierLimit = (membersExceededLimit || []).length > 0
+  const selectedTierMeta = SUBSCRIPTION_PLANS.find((tier) => tier.id === selectedTier)
+  const selectedPlanMeta = availablePlans.find(
+    (plan) => plan.id === selectedTier?.split('tier_')[1]
+  )
 
   useEffect(() => {
     if (visible) {
@@ -92,15 +98,11 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
       >
         <SidePanel.Content>
           <div className="py-6 grid grid-cols-12 gap-3">
-            {PRICING_META.map((plan) => {
-              const isDowngradeOption =
-                subscription?.tier.supabase_prod_id !== PRICING_TIER_PRODUCT_IDS.FREE &&
-                plan.id === PRICING_TIER_PRODUCT_IDS.FREE
-
-              const isCurrentPlan =
-                subscription?.tier.supabase_prod_id === plan.id ||
-                (subscription?.tier.supabase_prod_id === PRICING_TIER_PRODUCT_IDS.PAYG &&
-                  plan.id === PRICING_TIER_PRODUCT_IDS.PRO)
+            {SUBSCRIPTION_PLANS.map((plan) => {
+              const planMeta = availablePlans.find((p) => p.id === plan.id.split('tier_')[1])
+              const price = planMeta?.price ?? 0
+              const isDowngradeOption = planMeta?.change_type === 'downgrade'
+              const isCurrentPlan = planMeta?.is_current ?? false
 
               if (plan.id === 'tier_team' && !teamTierEnabled) return null
               if (plan.id === 'tier_enterprise') {
@@ -139,8 +141,14 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
                       )}
                     </div>
                     <div className="mt-4 flex items-center space-x-1">
-                      {(plan.price ?? 0) > 0 && <p className="text-scale-1000 text-sm">From</p>}
-                      <p className="text-scale-1200 text-lg">${plan.price}</p>
+                      {(price ?? 0) > 0 && <p className="text-scale-1000 text-sm">From</p>}
+                      {isLoadingPlans ? (
+                        <div className="h-[28px] flex items-center justify-center">
+                          <ShimmeringLoader className="w-[30px] h-[24px]" />
+                        </div>
+                      ) : (
+                        <p className="text-scale-1200 text-lg">${price}</p>
+                      )}
                       <p className="text-scale-1000 text-sm">per month</p>
                     </div>
                     <div
@@ -251,7 +259,7 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
         <Modal.Content>
           <div className="py-6 space-y-2">
             <p className="text-sm">
-              Upon clicking confirm, the amount of ${selectedTierMeta?.price ?? 'Unknown'} will be
+              Upon clicking confirm, the amount of ${selectedPlanMeta?.price ?? 'Unknown'} will be
               added to your invoice and your credit card will be charged immediately.
             </p>
             <p className="text-sm text-scale-1000">
