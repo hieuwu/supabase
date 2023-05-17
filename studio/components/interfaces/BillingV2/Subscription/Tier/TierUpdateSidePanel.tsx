@@ -21,6 +21,7 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
 
   return (
     <SidePanel
+      hideFooter
       size="xxlarge"
       visible={visible}
       onCancel={onClose}

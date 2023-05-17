@@ -16,12 +16,12 @@ export interface SpendCapSidePanelProps {
 
 const SPEND_CAP_OPTIONS: { name: string; value: 'on' | 'off'; imageUrl: string }[] = [
   {
-    name: 'Spend cap on',
+    name: 'Spend cap enabled',
     value: 'on',
     imageUrl: `${BASE_PATH}/img/spend-cap-on.svg`,
   },
   {
-    name: 'Spend cap off',
+    name: 'Spend cap disabled',
     value: 'off',
     imageUrl: `${BASE_PATH}/img/spend-cap-off.svg`,
   },
@@ -96,14 +96,8 @@ const SpendCapSidePanel = ({ visible, onClose }: SpendCapSidePanelProps) => {
       <SidePanel.Content>
         <div className="py-6 space-y-4">
           <p className="text-sm">
-            Supabase offers a "Spend Cap" on each project to manage your usage and costs, which
-            determines whether your project can exceed the free quota allowance of any line item in
-            a given billing cycle.
-          </p>
-
-          <p className="text-sm">
-            If you exceed the free quota allowance of a line item, and the Spend Cap is "off", then
-            you will be billed for any additional usage on that line item.
+            Use the spend cap to manage project usage and costs, and control whether the project can
+            exceed the included quota allowance of any billed line item in a billing cycle
           </p>
 
           <div className="!mt-8 pb-4">
@@ -140,14 +134,24 @@ const SpendCapSidePanel = ({ visible, onClose }: SpendCapSidePanelProps) => {
             </div>
           </div>
 
-          {isTurningOnCap && (
+          {selectedOption === 'on' ? (
             <Alert
               withIcon
               variant="warning"
               title="Your project could become unresponsive, enter read only mode, or be paused"
             >
-              If you exceed the free quota allowance set out for your subscription tier, then your
-              project could become unresponsive
+              Exceeding the included quota allowance with spend cap enabled can cause your project
+              to become unresponsive, enter read only mode, or be paused if your project is on free
+              tier subscription.
+            </Alert>
+          ) : (
+            <Alert
+              withIcon
+              variant="info"
+              title="Charges apply for usage beyond included quota allowance"
+            >
+              Your project will always remain responsive and active, and charges only apply when
+              exceeding the free quota limit.
             </Alert>
           )}
 

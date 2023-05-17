@@ -89,7 +89,9 @@ const CostControl = ({}: CostControlProps) => {
                 </div>
               </div>
               <div>
-                <p className="mb-1">Spend cap is {isUsageBillingEnabled ? 'off' : 'on'}</p>
+                <p className="mb-1">
+                  Spend cap is {isUsageBillingEnabled ? 'disabled' : 'enabled'}
+                </p>
                 <p className="text-sm text-scale-1000">
                   {isUsageBillingEnabled
                     ? 'You will be charged for any usage above the included quota'
