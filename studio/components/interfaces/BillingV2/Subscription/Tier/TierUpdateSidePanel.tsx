@@ -201,15 +201,20 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
                 If you're already past the limits of the free tier, your project could become
                 unresponsive, enter read only mode, or be paused.
               </p>
-              <p className="mt-1">Your project's add ons will also be removed, which includes:</p>
               {subscriptionAddons.length > 0 && (
-                <ul className="list-disc pl-4">
-                  {subscriptionAddons.map((addon) => (
-                    <li key={addon.type}>
-                      {addon.variant.name} {addon.type === 'compute_instance' && 'compute instance'}
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  <p className="mt-2">
+                    Your project's add ons will also be removed, which includes:
+                  </p>
+                  <ul className="list-disc pl-6">
+                    {subscriptionAddons.map((addon) => (
+                      <li key={addon.type} className="mt-0.5">
+                        {addon.variant.name}{' '}
+                        {addon.type === 'compute_instance' && 'compute instance'}
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
             </Alert>
           </div>
