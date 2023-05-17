@@ -196,7 +196,9 @@ const ComputeInstanceSidePanel = ({ visible, onClose }: ComputeInstanceSidePanel
                             {option.meta?.cpu_dedicated ? 'Dedicated' : 'Shared'})
                           </p>
                           <div className="flex items-center space-x-1 mt-2">
-                            <p className="text-scale-1200 text-sm">${option.price}</p>
+                            <p className="text-scale-1200 text-sm">
+                              ${option.price.toLocaleString()}
+                            </p>
                             <p className="text-scale-1000 translate-y-[1px]"> / month</p>
                           </div>
                         </div>
@@ -217,8 +219,8 @@ const ComputeInstanceSidePanel = ({ visible, onClose }: ComputeInstanceSidePanel
             {hasChanges && (
               <p className="text-sm text-scale-1100">
                 Upon clicking confirm, the amount of{' '}
-                <span className="text-scale-1200">${selectedCompute?.price}</span> will be added to
-                your invoice and your credit card will be charged immediately.
+                <span className="text-scale-1200">${selectedCompute?.price.toLocaleString()}</span>{' '}
+                will be added to your invoice and your credit card will be charged immediately.
               </p>
             )}
           </div>

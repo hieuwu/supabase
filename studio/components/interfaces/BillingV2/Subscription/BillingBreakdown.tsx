@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { useParams } from 'common'
 import ShimmeringLoader from 'components/ui/ShimmeringLoader'
 import SparkBar from 'components/ui/SparkBar'
-import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
+import { useUpcomingInvoiceQuery } from 'data/invoices/invoice-upcoming-query'
 import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import {
   ProjectUsageResponse,
@@ -12,11 +12,10 @@ import {
 import dayjs from 'dayjs'
 import { USAGE_APPROACHING_THRESHOLD } from 'lib/constants'
 import { formatBytes } from 'lib/helpers'
+import { partition } from 'lodash'
 import { useState } from 'react'
 import { Button, Collapsible, IconAlertTriangle, IconChevronRight } from 'ui'
-import BillingBreakdownRow from './BillingBreakdownRow'
 import { BILLING_BREAKDOWN_METRICS } from './Subscription.constants'
-import { calculateTotalCost, getAddons } from './Subscription.utils'
 
 export interface BillingBreakdownProps {}
 
@@ -24,19 +23,17 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
   const { ref: projectRef } = useParams()
   const [showUsageFees, setShowUsageFees] = useState(false)
   const { data: usage, isLoading: isLoadingUsage } = useProjectUsageQuery({ projectRef })
-  const { data: addons, isLoading: isLoadingAddons } = useProjectAddonsQuery({ projectRef })
   const { data: subscription, isLoading: isLoadingSubscription } = useProjectSubscriptionV2Query({
     projectRef,
   })
-
-  const usageFees = subscription?.usage_fees ?? []
-  const selectedAddons = addons?.selected_addons ?? []
-  const { computeInstance, pitr, customDomain } = getAddons(selectedAddons)
+  const { data: upcomingInvoice, isLoading: isLoadingUpcomingInvoice } = useUpcomingInvoiceQuery({
+    projectRef,
+  })
   const billingCycleStart = dayjs.unix(subscription?.current_period_start ?? 0).utc()
   const billingCycleEnd = dayjs.unix(subscription?.current_period_end ?? 0).utc()
 
-  const totalUpcomingCost =
-    subscription !== undefined ? calculateTotalCost(subscription, selectedAddons) : 0
+  const [usageFees, fixedFees] = partition(upcomingInvoice?.lines ?? [], (item) => item.usage_based)
+  const totalUsageFees = usageFees.reduce((a, b) => a + b.amount, 0)
 
   return (
     <div className="grid grid-cols-12">
@@ -153,83 +150,100 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
           )}
 
           <p className="!mt-10 text-sm">Upcoming cost for next invoice</p>
-          <p className="text-sm text-scale-1000">[TODO] Some description text here</p>
           <p className="text-sm text-scale-1000">
+            The following table shows exactly what will be charged for your project at the end of
+            its billing cycle on{' '}
+            <span className="text-scale-1100">{billingCycleEnd.format('MMM DD, YYYY')}</span>.
+          </p>
+          <p className="text-sm text-scale-1000 !mt-2">
             Current billing cycle: {billingCycleStart.format('MMM DD')} -{' '}
             {billingCycleEnd.format('MMM DD')}
           </p>
 
-          <table className="w-full">
-            <thead>
-              <tr className="border-b">
-                <th className="py-2 font-normal text-left text-sm text-scale-1000 w-1/2">Item</th>
-                <th className="py-2 font-normal text-left text-sm text-scale-1000">Count</th>
-                <th className="py-2 font-normal text-left text-sm text-scale-1000">Unit price</th>
-                <th className="py-2 font-normal text-right text-sm text-scale-1000">Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* Tier */}
-              <BillingBreakdownRow
-                name={subscription?.tier.name}
-                cost={subscription?.tier.price ?? 0}
-              />
-              {/* Compute */}
-              {computeInstance !== undefined ? (
-                <BillingBreakdownRow
-                  name={computeInstance.variant.name}
-                  cost={computeInstance.variant.price}
-                />
-              ) : (
-                <BillingBreakdownRow name="Micro compute" cost={0} />
-              )}
-              {/* PITR */}
-              {pitr !== undefined && (
-                <BillingBreakdownRow name="Point in time recovery" cost={pitr.variant.price} />
-              )}
-              {/* Custom domain */}
-              {customDomain !== undefined && (
-                <BillingBreakdownRow name="Custom domain" cost={customDomain.variant.price} />
-              )}
-            </tbody>
+          {isLoadingUpcomingInvoice ? (
+            <div className="space-y-2">
+              <ShimmeringLoader />
+              <ShimmeringLoader className="w-3/4" />
+              <ShimmeringLoader className="w-1/2" />
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="py-2 font-normal text-left text-sm text-scale-1000 w-1/2">Item</th>
+                  <th className="py-2 font-normal text-left text-sm text-scale-1000">Count</th>
+                  <th className="py-2 font-normal text-left text-sm text-scale-1000">Unit price</th>
+                  <th className="py-2 font-normal text-right text-sm text-scale-1000">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fixedFees.map((item) => (
+                  <tr className="border-b">
+                    <td className="py-2 text-sm">{item.description ?? 'Unknown'}</td>
+                    <td className="py-2 text-sm">{item.quantity}</td>
+                    <td className="py-2 text-sm">
+                      {item.unit_price === 0 ? 'FREE' : `$${item.unit_price}`}
+                    </td>
+                    <td className="py-2 text-sm text-right">${item.amount}</td>
+                  </tr>
+                ))}
+              </tbody>
 
-            {/* [TODO] Usage fees - We'll get this data from a separate endpoint */}
-            {usageFees.length > 0 && (
-              <Collapsible asChild open={showUsageFees} onOpenChange={setShowUsageFees}>
-                <tbody>
-                  <Collapsible.Trigger asChild>
-                    <tr className="border-b cursor-pointer" style={{ WebkitAppearance: 'initial' }}>
-                      <td className="py-2 text-sm flex items-center space-x-2">
-                        <Button type="text" className="!px-1" icon={<IconChevronRight />} />
-                        <p>Usage items</p>
-                      </td>
-                    </tr>
-                  </Collapsible.Trigger>
-                  <Collapsible.Content asChild>
-                    <>
-                      {usageFees.map((fee) => (
-                        <tr key={fee.metric}>
-                          <td className="py-2 text-sm pl-8">{fee.metric}</td>
-                          <td className="py-2 text-sm"></td>
-                          <td className="py-2 text-sm">{fee.pricingOptions.perUnitPrice ?? 0}</td>
-                          <td className="py-2 text-sm text-right"></td>
-                        </tr>
-                      ))}
-                    </>
-                  </Collapsible.Content>
-                </tbody>
-              </Collapsible>
-            )}
+              {usageFees.length > 0 && (
+                <Collapsible asChild open={showUsageFees} onOpenChange={setShowUsageFees}>
+                  <tbody>
+                    <Collapsible.Trigger asChild>
+                      <tr
+                        className="border-b cursor-pointer"
+                        style={{ WebkitAppearance: 'initial' }}
+                      >
+                        <td className="py-2 text-sm flex items-center space-x-2">
+                          <Button
+                            type="text"
+                            className="!px-1"
+                            icon={
+                              <IconChevronRight
+                                className={clsx('transition', showUsageFees && 'rotate-90')}
+                              />
+                            }
+                          />
+                          <p>Usage items</p>
+                        </td>
+                        <td />
+                        <td />
+                        <td className="text-sm text-right">
+                          {!showUsageFees ? `$${totalUsageFees}` : null}
+                        </td>
+                      </tr>
+                    </Collapsible.Trigger>
+                    <Collapsible.Content asChild>
+                      <>
+                        {usageFees.map((fee) => (
+                          <tr className="border-b" key={fee.description}>
+                            <td className="py-2 text-sm pl-8">{fee.description}</td>
+                            <td className="py-2 text-sm"></td>
+                            <td className="py-2 text-sm">
+                              {fee.unit_price ? `$${fee.unit_price}` : null}
+                            </td>
+                            <td className="py-2 text-sm text-right">${fee.amount ?? 0}</td>
+                          </tr>
+                        ))}
+                      </>
+                    </Collapsible.Content>
+                  </tbody>
+                </Collapsible>
+              )}
 
-            <tbody>
-              <tr>
-                <td className="py-2 text-sm">Total</td>
-                <td className="py-2 text-sm" />
-                <td className="py-2 text-sm" />
-                <td className="py-2 text-sm text-right">${totalUpcomingCost.toFixed(2)}</td>
-              </tr>
-            </tbody>
-          </table>
+              <tbody>
+                <tr>
+                  <td className="py-2 text-sm">Total</td>
+                  <td className="py-2 text-sm" />
+                  <td className="py-2 text-sm" />
+                  <td className="py-2 text-sm text-right">${upcomingInvoice?.amount_total ?? 0}</td>
+                </tr>
+              </tbody>
+            </table>
+          )}
         </div>
       )}
     </div>

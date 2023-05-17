@@ -13,8 +13,10 @@ export type ProjectAddonType = 'compute_instance' | 'pitr' | 'custom_domain'
 export type ProjectAddonVariant = {
   identifier: string
   name: string
-  price_description: string
   price: number
+  price_description: string
+  price_interval: 'monthly' | 'hourly'
+  price_type: 'fixed' | 'usage'
 }
 
 export interface ProjectAvailableAddonVariant extends ProjectAddonVariant {
