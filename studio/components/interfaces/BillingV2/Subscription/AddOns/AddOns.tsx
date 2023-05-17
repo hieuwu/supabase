@@ -1,23 +1,29 @@
 import { useParams } from 'common'
 import ShimmeringLoader from 'components/ui/ShimmeringLoader'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
-import { BASE_PATH } from 'lib/constants'
+import { BASE_PATH, PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import Image from 'next/image'
-import { Button, IconExternalLink } from 'ui'
+import { Alert, Button, IconExternalLink } from 'ui'
 import { getAddons } from '../Subscription.utils'
 import Link from 'next/link'
 import ComputeInstanceSidePanel from './ComputeInstanceSidePanel'
 import { useState } from 'react'
 import CustomDomainSidePanel from './CustomDomainSidePanel'
 import PITRSidePanel from './PITRSidePanel'
+import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
+import { useFlag } from 'hooks'
 
 export interface AddOnsProps {}
 
 const AddOns = ({}: AddOnsProps) => {
   const { ref: projectRef } = useParams()
+  // [JOSHEN TODO] Double check if still valid
+  const projectUpdateDisabled = useFlag('disableProjectCreationAndUpdate')
   const [addonUpdate, setAddonUpdate] = useState<'computeInstance' | 'pitr' | 'customDomain'>()
 
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
+  const { data: subscription } = useProjectSubscriptionV2Query({ projectRef })
+  const isFreeTier = subscription?.tier.supabase_prod_id === PRICING_TIER_PRODUCT_IDS.FREE
   const selectedAddons = addons?.selected_addons ?? []
   const availableAddons = addons?.available_addons ?? []
 
@@ -86,6 +92,16 @@ const AddOns = ({}: AddOnsProps) => {
           <div className="col-span-7 space-y-6">
             <p className="text-sm text-scale-1000">[TODO] Some description text here</p>
 
+            {isFreeTier && (
+              <Alert
+                withIcon
+                variant="info"
+                title="You will need to be on the Pro tier to change your add ons"
+              >
+                Some description text here
+              </Alert>
+            )}
+
             <div className="py-2 space-y-6">
               {/* Compute add on selection */}
               <div className="flex space-x-6">
@@ -108,6 +124,7 @@ const AddOns = ({}: AddOnsProps) => {
                   <Button
                     type="default"
                     className="mt-2"
+                    disabled={isFreeTier}
                     onClick={() => setAddonUpdate('computeInstance')}
                   >
                     Change optimized compute
@@ -168,7 +185,12 @@ const AddOns = ({}: AddOnsProps) => {
                         } days is enabled`
                       : 'Point in time recovery is not enabled'}
                   </p>
-                  <Button type="default" className="mt-2" onClick={() => setAddonUpdate('pitr')}>
+                  <Button
+                    type="default"
+                    className="mt-2"
+                    disabled={isFreeTier}
+                    onClick={() => setAddonUpdate('pitr')}
+                  >
                     Change point in time recovery
                   </Button>
                 </div>
@@ -201,6 +223,7 @@ const AddOns = ({}: AddOnsProps) => {
                   <Button
                     type="default"
                     className="mt-2"
+                    disabled={isFreeTier}
                     onClick={() => setAddonUpdate('customDomain')}
                   >
                     Change custom domain

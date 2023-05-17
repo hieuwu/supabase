@@ -41,25 +41,20 @@ const CostControl = ({}: CostControlProps) => {
           <div className="col-span-7 space-y-6">
             <p className="text-sm text-scale-1000">
               You can control whether your project is charged for additional usage beyond the
-              included usage of your subscription plan. If you need to go beyond the included usage,
+              included quota of your subscription plan. If you need to go beyond the included quota,
               simply switch off your spend cap to pay for additional usage.
             </p>
-            {currentTier === PRICING_TIER_PRODUCT_IDS.TEAM && (
-              <div className="w-full bg-scale-100 px-6 py-4 rounded-md flex space-x-4">
-                <div>
-                  <IconAlertCircle strokeWidth={2} />
-                </div>
-                <div>
-                  <p className="text-sm">
-                    You will be charged for any additional usage on the Team subscription plan
-                  </p>
-                  <p className="text-sm text-scale-1000">
-                    Team plan requires you to have Spend Cap off at all times. Your project will
-                    never become unresponsive or be paused. Only when your included usage is
-                    exceeded will you be charged for any additional usage.
-                  </p>
-                </div>
-              </div>
+
+            {currentTier === PRICING_TIER_PRODUCT_IDS.FREE && (
+              <Alert
+                withIcon
+                variant="info"
+                title="You will need to be on the Pro tier to disable spend caps"
+              >
+                Spend cap is enabled by default on the Free tier. While your project will not be
+                charged any extra for usage, your project will experience downtime if you exceed the
+                included quota
+              </Alert>
             )}
 
             {currentTier === PRICING_TIER_PRODUCT_IDS.TEAM && (
@@ -95,7 +90,7 @@ const CostControl = ({}: CostControlProps) => {
                 <p className="text-sm text-scale-1000">
                   {isUsageBillingEnabled
                     ? 'You will be charged for any usage above the included quota'
-                    : 'You will never be charged any extra for usage. However, your project will experience downtime if you exceed the included quota'}
+                    : 'You will never be charged any extra for usage. However, your project could become unresponsive, enter read only mode, or be paused if you exceed the included quota'}
                 </p>
                 {isUsageBillingEnabled && (
                   <p className="text-sm text-scale-1000 mt-1">
@@ -107,7 +102,7 @@ const CostControl = ({}: CostControlProps) => {
                 <Button
                   type="default"
                   className="mt-4"
-                  disabled={!canChangeTier}
+                  disabled={!canChangeTier || currentTier === PRICING_TIER_PRODUCT_IDS.FREE}
                   onClick={() => setShowSpendCapPanel(true)}
                 >
                   Change spend cap

@@ -12,8 +12,8 @@ export interface PricingInformation {
   footer?: string
 }
 
-export const PRICING_META: { [x: string]: PricingInformation } = {
-  [STRIPE_PRODUCT_IDS.FREE]: {
+export const PRICING_META = [
+  {
     id: 'tier_free',
     new: false,
     name: 'Free',
@@ -33,7 +33,7 @@ export const PRICING_META: { [x: string]: PricingInformation } = {
     ],
     footer: undefined,
   },
-  [STRIPE_PRODUCT_IDS.PRO]: {
+  {
     id: 'tier_pro',
     new: false,
     name: 'Pro',
@@ -56,7 +56,7 @@ export const PRICING_META: { [x: string]: PricingInformation } = {
     footer:
       'Your cost control settings determine if you wish to pay for anything more than the above.',
   },
-  [STRIPE_PRODUCT_IDS.TEAM]: {
+  {
     id: 'tier_team',
     new: true,
     name: 'Team',
@@ -76,7 +76,7 @@ export const PRICING_META: { [x: string]: PricingInformation } = {
     footer:
       'Your cost control settings determine if you wish to pay for anything more than the above.',
   },
-  Enterprise: {
+  {
     id: 'tier_enterprise',
     new: false,
     name: 'Enterprise',
@@ -85,4 +85,4 @@ export const PRICING_META: { [x: string]: PricingInformation } = {
     features: [`Designated Support manager & SLAs`, `SSO/ SAML`, `Custom contracts & invoicing`],
     footer: undefined,
   },
-}
+]
