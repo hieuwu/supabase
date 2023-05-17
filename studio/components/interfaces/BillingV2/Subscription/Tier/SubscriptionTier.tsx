@@ -6,7 +6,7 @@ import dayjs from 'dayjs'
 import { PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import Link from 'next/link'
 import { useState } from 'react'
-import { Button, IconAlertCircle } from 'ui'
+import { Alert, Button, IconAlertCircle } from 'ui'
 import TierUpdateSidePanel from './TierUpdateSidePanel'
 
 export interface SubscriptionTierProps {}
@@ -71,20 +71,14 @@ const SubscriptionTier = ({}: SubscriptionTierProps) => {
             {[PRICING_TIER_PRODUCT_IDS.FREE, PRICING_TIER_PRODUCT_IDS.PRO].includes(
               currentTier
             ) && (
-              <div className="w-full bg-scale-100 px-6 py-4 rounded-md flex space-x-4">
-                <div>
-                  <IconAlertCircle strokeWidth={2} />
-                </div>
-                <div>
-                  <p className="text-sm">This project is limited by the included usage</p>
-                  <p className="text-sm text-scale-1000">
-                    When this project exceeds its included usage quotas, it may become unresponsive.
-                    {currentTier === PRICING_TIER_PRODUCT_IDS.FREE
-                      ? 'If you wish to exceed the included usage, it is advised you upgrade to a paid plan.'
-                      : 'You can change the Cost Control settings if you plan on exceeding the included usage quotas.'}
-                  </p>
-                </div>
-              </div>
+              <Alert withIcon variant="info" title="This project is limited by the included usage">
+                <p className="text-sm text-scale-1000">
+                  When this project exceeds its included usage quotas, it may become unresponsive.
+                  {currentTier === PRICING_TIER_PRODUCT_IDS.FREE
+                    ? 'If you wish to exceed the included usage, it is advised you upgrade to a paid plan.'
+                    : 'You can change the Cost Control settings if you plan on exceeding the included usage quotas.'}
+                </p>
+              </Alert>
             )}
             <SparkBar
               type="horizontal"
