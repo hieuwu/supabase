@@ -144,6 +144,7 @@ interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, '
   align?: 'vertical' | 'horizontal'
   optionalLabel?: 'string' | React.ReactNode
   addOnBefore?: React.ReactNode
+  children?: React.ReactNode
 }
 
 function Radio({
@@ -164,6 +165,7 @@ function Radio({
   align = 'vertical',
   optionalLabel,
   addOnBefore,
+  children,
 }: InputProps) {
   const __styles = styleHandler('radio')
 
@@ -247,38 +249,50 @@ function Radio({
               onBlur={handleBlurEvent}
             />
             {addOnBefore}
-            <div
-              className={[
-                __styles.label.base,
-                __styles.label[size],
-                __styles.variants[type].container.align[align],
-              ].join(' ')}
-            >
-              {beforeLabel && (
+            {children || (
+              <>
                 <div
-                  className={[__styles.label_before.base, __styles.label_before[size]].join(' ')}
+                  className={[
+                    __styles.label.base,
+                    __styles.label[size],
+                    __styles.variants[type].container.align[align],
+                  ].join(' ')}
                 >
-                  {beforeLabel}
+                  {beforeLabel && (
+                    <div
+                      className={[__styles.label_before.base, __styles.label_before[size]].join(
+                        ' '
+                      )}
+                    >
+                      {beforeLabel}
+                    </div>
+                  )}
+                  <div>{label}</div>
+                  {afterLabel && (
+                    <div
+                      className={[__styles.label_after.base, __styles.label_after[size]].join(' ')}
+                    >
+                      {afterLabel}
+                    </div>
+                  )}
+                  {description && (
+                    <div
+                      className={[__styles.description.base, __styles.description[size]].join(' ')}
+                    >
+                      {description}
+                    </div>
+                  )}
                 </div>
-              )}
-              <div>{label}</div>
-              {afterLabel && (
-                <div className={[__styles.label_after.base, __styles.label_after[size]].join(' ')}>
-                  {afterLabel}
-                </div>
-              )}
-              {description && (
-                <div className={[__styles.description.base, __styles.description[size]].join(' ')}>
-                  {description}
-                </div>
-              )}
-            </div>
-            {optionalLabel && (
-              <div
-                className={[__styles.optionalLabel.base, __styles.optionalLabel[size]].join(' ')}
-              >
-                {optionalLabel}
-              </div>
+                {optionalLabel && (
+                  <div
+                    className={[__styles.optionalLabel.base, __styles.optionalLabel[size]].join(
+                      ' '
+                    )}
+                  >
+                    {optionalLabel}
+                  </div>
+                )}
+              </>
             )}
           </label>
         )

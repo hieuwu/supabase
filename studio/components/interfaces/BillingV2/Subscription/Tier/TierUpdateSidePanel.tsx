@@ -68,9 +68,9 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
         category: 'success',
         message: `Successfully updated subscription to ${selectedTierMeta?.name}!`,
       })
+      setSelectedTier(undefined)
       onClose()
     } catch (error: any) {
-      setIsSubmitting(false)
       ui.setNotification({
         error,
         category: 'error',
@@ -78,8 +78,6 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
       })
     } finally {
       setIsSubmitting(false)
-      setSelectedTier(undefined)
-      onClose()
     }
   }
 
