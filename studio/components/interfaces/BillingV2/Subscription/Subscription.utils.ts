@@ -12,7 +12,7 @@ export const calculateTotalCost = (
   subscription: ProjectSubscriptionResponse,
   selectedAddons: ProjectSelectedAddon[]
 ) => {
-  const tierCost = (subscription?.tier.unit_amount ?? 0) / 100
+  const tierCost = (subscription?.tier.price ?? 0) / 100
   const addOnsCost =
     selectedAddons !== undefined
       ? selectedAddons.map((addon) => addon.variant.price ?? 0).reduce((a, b) => a + b, 0)
