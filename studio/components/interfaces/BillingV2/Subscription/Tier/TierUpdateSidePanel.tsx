@@ -10,6 +10,9 @@ import { Alert, Button, IconCheck, Modal, SidePanel } from 'ui'
 import EnterpriseCard from './EnterpriseCard'
 import { PRICING_META } from './Tier.constants'
 import PaymentMethodSelection from './PaymentMethodSelection'
+import { useFreeProjectLimitCheckQuery } from 'data/organizations/free-project-limit-check-query'
+import MembersExceedLimitModal from './MembersExceedLimitModal'
+import ExitSurveyModal from './ExitSurveyModal'
 
 export interface TierUpdateSidePanelProps {
   visible: boolean
@@ -20,10 +23,16 @@ export interface TierUpdateSidePanelProps {
 
 const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => {
   const { ui } = useStore()
+  const slug = ui.selectedOrganization?.slug
   const { ref: projectRef } = useParams()
+
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showExitSurvey, setShowExitSurvey] = useState(false)
+  const [showDowngradeError, setShowDowngradeError] = useState(false)
   const [selectedTier, setSelectedTier] = useState<'tier_free' | 'tier_pro' | 'tier_team'>()
+
   const { data: addons } = useProjectAddonsQuery({ projectRef })
+  const { data: membersExceededLimit } = useFreeProjectLimitCheckQuery({ slug })
   const { data: subscription, isLoading } = useProjectSubscriptionV2Query({ projectRef })
   const { mutateAsync: updateSubscriptionTier } = useProjectSubscriptionUpdateMutation()
 
@@ -31,12 +40,22 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
   const selectedTierMeta = PRICING_META.find((tier) => tier.id === selectedTier)
   const userIsOnTeamTier = subscription?.tier?.supabase_prod_id === PRICING_TIER_PRODUCT_IDS.TEAM
   const teamTierEnabled = useFlag('teamTier') || userIsOnTeamTier
+  const hasMembersExceedingFreeTierLimit = (membersExceededLimit || []).length > 0
 
   useEffect(() => {
     if (visible) {
       setSelectedTier(undefined)
     }
   }, [visible])
+
+  const onConfirmDowngrade = () => {
+    setSelectedTier(undefined)
+    if (hasMembersExceedingFreeTierLimit) {
+      setShowDowngradeError(true)
+    } else {
+      setShowExitSurvey(true)
+    }
+  }
 
   const onUpdateSubscription = async () => {
     if (!projectRef) return console.error('Project ref is required')
@@ -76,6 +95,10 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
         <SidePanel.Content>
           <div className="py-6 grid grid-cols-12 gap-3">
             {PRICING_META.map((plan) => {
+              const isDowngradeOption =
+                subscription?.tier.supabase_prod_id !== PRICING_TIER_PRODUCT_IDS.FREE &&
+                plan.id === PRICING_TIER_PRODUCT_IDS.FREE
+
               const isCurrentPlan =
                 subscription?.tier.supabase_prod_id === plan.id ||
                 (subscription?.tier.supabase_prod_id === PRICING_TIER_PRODUCT_IDS.PAYG &&
@@ -139,16 +162,12 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
                     ) : (
                       <Button
                         block
-                        type="primary"
+                        type={isDowngradeOption ? 'default' : 'primary'}
                         loading={isLoading}
                         disabled={isLoading}
                         onClick={() => setSelectedTier(plan.id as any)}
                       >
-                        {subscription?.tier.supabase_prod_id !== PRICING_TIER_PRODUCT_IDS.FREE &&
-                        plan.id === PRICING_TIER_PRODUCT_IDS.FREE
-                          ? 'Downgrade'
-                          : 'Upgrade'}{' '}
-                        to {plan.name}
+                        {isDowngradeOption ? 'Downgrade' : 'Upgrade'} to {plan.name}
                       </Button>
                     )}
 
@@ -187,6 +206,7 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
         alignFooter="right"
         visible={selectedTier === 'tier_free'}
         onCancel={() => setSelectedTier(undefined)}
+        onConfirm={onConfirmDowngrade}
         header={`Confirm to downgrade to ${selectedTierMeta?.name}`}
       >
         {/* [JOSHEN] We could make this better by only showing a danger warning if the project is already above the free tier limits */}
@@ -246,6 +266,18 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
           </div>
         </Modal.Content>
       </Modal>
+
+      <MembersExceedLimitModal
+        visible={showDowngradeError}
+        onClose={() => setShowDowngradeError(false)}
+      />
+      <ExitSurveyModal
+        visible={showExitSurvey}
+        onClose={(success?: boolean) => {
+          setShowExitSurvey(false)
+          if (success) onClose()
+        }}
+      />
     </>
   )
 }

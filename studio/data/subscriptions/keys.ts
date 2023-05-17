@@ -6,4 +6,6 @@ export const subscriptionKeys = {
   subscriptionV2: (projectRef: string | undefined) =>
     ['projects', projectRef, 'subscriptionV2'] as const,
   addons: (projectRef: string | undefined) => ['projects', projectRef, 'addons'] as const,
+  preview: (projectRef: string | undefined) =>
+    ['projects', projectRef, 'subscription-preview'] as const,
 }
