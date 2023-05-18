@@ -25,7 +25,7 @@ const MembersExceedLimitModal = ({ visible, onClose }: MembersExceedLimitModalPr
           <div className="space-y-2">
             <p className="text-sm text-scale-1100">
               The following members have reached their maximum limits for the number of active free
-              tier projects within organizations where they are an administrator or owner:
+              plan projects within organizations where they are an administrator or owner:
             </p>
             <ul className="pl-5 text-sm list-disc text-scale-1100">
               {(membersExceededLimit || []).map((member, idx: number) => (

@@ -17,7 +17,7 @@ export interface ExitSurveyModalProps {
   onClose: (success?: boolean) => void
 }
 
-// [Joshen] For context - Exit survey is only when going to free tier from a paid tier
+// [Joshen] For context - Exit survey is only when going to free plan from a paid plan
 
 const ExitSurveyModal = ({ visible, onClose }: ExitSurveyModalProps) => {
   const { ui, app } = useStore()
@@ -114,7 +114,7 @@ const ExitSurveyModal = ({ visible, onClose }: ExitSurveyModalProps) => {
         duration: hasComputeInstance ? 8000 : 4000,
         message: hasComputeInstance
           ? 'Your project has been downgraded and is currently restarting to update its instance size'
-          : 'Successfully downgraded project to the free tier',
+          : 'Successfully downgraded project to the free plan',
       })
       // [JOSHEN TODO] To revisit: RE showing a toast on how much is returned?
       if (hasComputeInstance) {

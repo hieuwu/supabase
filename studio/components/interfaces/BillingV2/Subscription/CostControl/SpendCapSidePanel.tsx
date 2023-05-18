@@ -219,7 +219,7 @@ const SpendCapSidePanel = () => {
             >
               Exceeding the included quota allowance with spend cap enabled can cause your project
               to become unresponsive, enter read only mode, or be paused if your project is on free
-              tier subscription.
+              plan.
             </Alert>
           ) : (
             <Alert

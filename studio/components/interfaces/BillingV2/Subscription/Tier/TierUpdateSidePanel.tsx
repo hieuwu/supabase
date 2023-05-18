@@ -215,16 +215,16 @@ const TierUpdateSidePanel = () => {
         onConfirm={onConfirmDowngrade}
         header={`Confirm to downgrade to ${selectedTierMeta?.name}`}
       >
-        {/* [JOSHEN] We could make this better by only showing a danger warning if the project is already above the free tier limits */}
+        {/* [JOSHEN] We could make this better by only showing a danger warning if the project is already above the free plan limits */}
         <Modal.Content>
           <div className="py-6">
             <Alert
               withIcon
               variant="warning"
-              title="Downgrading to the free tier will lead to reductions in your project's capacity"
+              title="Downgrading to the free plan will lead to reductions in your project's capacity"
             >
               <p>
-                If you're already past the limits of the free tier, your project could become
+                If you're already past the limits of the free plan, your project could become
                 unresponsive, enter read only mode, or be paused.
               </p>
               {subscriptionAddons.length > 0 && (
@@ -264,7 +264,7 @@ const TierUpdateSidePanel = () => {
             </p>
             <p className="text-sm text-scale-1000">
               You will also be able to change your project's add-ons after upgrading your project's
-              tier.
+              plan.
             </p>
             <div className="!mt-6">
               <PaymentMethodSelection selectedPaymentMethod="" onSelectPaymentMethod={() => {}} />

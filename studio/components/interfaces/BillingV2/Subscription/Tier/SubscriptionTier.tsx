@@ -43,7 +43,7 @@ const SubscriptionTier = ({}: SubscriptionTierProps) => {
     <>
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12 lg:col-span-5">
-          <p className="text-base sticky top-16">Subscription tier</p>
+          <p className="text-base sticky top-16">Subscription plan</p>
         </div>
         {isLoading ? (
           <div className="col-span-12 lg:col-span-7 space-y-2">
@@ -54,7 +54,7 @@ const SubscriptionTier = ({}: SubscriptionTierProps) => {
         ) : (
           <div className="col-span-12 lg:col-span-7 space-y-6">
             <div>
-              <p className="text-sm">This project is currently on the tier:</p>
+              <p className="text-sm">This project is currently on the plan:</p>
               <p className="text-2xl text-brand-900 uppercase">{tierName}</p>
             </div>
             <div>
