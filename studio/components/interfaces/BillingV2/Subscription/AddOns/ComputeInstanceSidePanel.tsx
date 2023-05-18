@@ -163,16 +163,19 @@ const ComputeInstanceSidePanel = () => {
                       }}
                     >
                       <div
-                        style={{ aspectRatio: ' 160/96' }}
                         className={clsx(
-                          'relative rounded-xl transition border',
+                          'relative rounded-xl transition border bg-no-repeat bg-center bg-cover',
+                          isSelected ? 'border-brand-900' : 'border-scale-900 opacity-50',
+                          !isFreePlan && 'cursor-pointer',
                           !isFreePlan &&
-                            'group-hover:border-scale-1100 cursor-pointer group-hover:opacity-100',
-                          isSelected ? 'border-scale-1200' : 'border-transparent opacity-50'
+                            !isSelected &&
+                            'group-hover:border-scale-1100 group-hover:opacity-100'
                         )}
-                      >
-                        <Image layout="fill" objectFit="contain" src={option.imageUrl} />
-                      </div>
+                        style={{
+                          aspectRatio: ' 160/96',
+                          backgroundImage: `url(${option.imageUrl})`,
+                        }}
+                      />
                       <p
                         className={clsx(
                           'text-sm transition',

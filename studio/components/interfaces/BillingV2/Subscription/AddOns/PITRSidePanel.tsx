@@ -148,23 +148,24 @@ const PITRSidePanel = () => {
                     key={option.id}
                     className={clsx('col-span-3 group space-y-1', isFreePlan && 'opacity-75')}
                     onClick={() => {
-                      if (subscriptionCompute !== undefined) {
-                        setSelectedCategory(option.id)
-                        if (option.id === 'off') setSelectedOption('pitr_0')
-                      }
+                      setSelectedCategory(option.id)
+                      if (option.id === 'off') setSelectedOption('pitr_0')
                     }}
                   >
                     <div
-                      style={{ aspectRatio: ' 160/96' }}
                       className={clsx(
-                        'relative rounded-xl transition border',
+                        'relative rounded-xl transition border bg-no-repeat bg-center bg-cover',
+                        isSelected ? 'border-brand-900' : 'border-scale-900 opacity-50',
+                        !isFreePlan && 'cursor-pointer',
                         !isFreePlan &&
-                          'group-hover:border-scale-1100 cursor-pointer group-hover:opacity-100',
-                        isSelected ? 'border-scale-1200' : 'border-transparent opacity-50'
+                          !isSelected &&
+                          'group-hover:border-scale-1100 group-hover:opacity-100'
                       )}
-                    >
-                      <Image layout="fill" objectFit="contain" src={option.imageUrl} />
-                    </div>
+                      style={{
+                        aspectRatio: ' 160/96',
+                        backgroundImage: `url(${option.imageUrl})`,
+                      }}
+                    />
                     <p
                       className={clsx(
                         'text-sm transition',
@@ -185,7 +186,7 @@ const PITRSidePanel = () => {
                 type="large-cards"
                 size="tiny"
                 id="pitr"
-                label={<p className="text-sm">Choose the duration for point in time recovery</p>}
+                label={<p className="text-sm">Choose the duration of recovery</p>}
                 onChange={(event: any) => setSelectedOption(event.target.value)}
               >
                 {availableOptions.map((option) => (
@@ -226,8 +227,8 @@ const PITRSidePanel = () => {
               {selectedOption === 'pitr_0' ||
               (selectedPitr?.price ?? 0) < (subscriptionPitr?.variant.price ?? 0) ? (
                 <p className="text-sm text-scale-1100">
-                  Upon clicking confirm, the amount of $XX (pro-rated) will be returned as credits
-                  that can be used for subsequent billing cycles
+                  Upon clicking confirm, the amount of that's unused during the current billing
+                  cycle will be returned as credits that can be used for subsequent billing cycles
                 </p>
               ) : (
                 <p className="text-sm text-scale-1100">
