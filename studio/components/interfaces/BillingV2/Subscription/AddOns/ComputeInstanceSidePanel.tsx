@@ -214,7 +214,7 @@ const ComputeInstanceSidePanel = () => {
                           <p className="text-sm">{option.name.split('Compute Instance')[0]}</p>
                         </div>
                         <div className="px-4 py-2">
-                          <p className="text-scale-1000">{option.meta?.memory_gb ?? 0} GB</p>
+                          <p className="text-scale-1000">{option.meta?.memory_gb ?? 0} GB memory</p>
                           <p className="text-scale-1000">
                             {option.meta?.cpu_cores ?? 0}-core ARM CPU (
                             {option.meta?.cpu_dedicated ? 'Dedicated' : 'Shared'})
