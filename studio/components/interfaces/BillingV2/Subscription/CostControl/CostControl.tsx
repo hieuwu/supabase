@@ -3,7 +3,7 @@ import ShimmeringLoader from 'components/ui/ShimmeringLoader'
 import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import { BASE_PATH, PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 import { Alert, Button } from 'ui'
 import SpendCapSidePanel from './SpendCapSidePanel'
 
@@ -11,7 +11,8 @@ export interface CostControlProps {}
 
 const CostControl = ({}: CostControlProps) => {
   const { ref: projectRef } = useParams()
-  const [showSpendCapPanel, setShowSpendCapPanel] = useState(false)
+
+  const snap = useSubscriptionPageStateSnapshot()
   const { data: subscription, isLoading } = useProjectSubscriptionV2Query({ projectRef })
 
   const currentTier = subscription?.tier?.supabase_prod_id ?? ''
@@ -98,12 +99,11 @@ const CostControl = ({}: CostControlProps) => {
                     reaches the quota limit will you be charged for any excess usage.
                   </p>
                 )}
-                {/* [JOSHEN TODO] Add a tooltip */}
                 <Button
                   type="default"
                   className="mt-4"
-                  disabled={!canChangeTier || currentTier === PRICING_TIER_PRODUCT_IDS.FREE}
-                  onClick={() => setShowSpendCapPanel(true)}
+                  disabled={!canChangeTier}
+                  onClick={() => snap.setPanelKey('costControl')}
                 >
                   Change spend cap
                 </Button>
@@ -112,7 +112,7 @@ const CostControl = ({}: CostControlProps) => {
           </div>
         )}
       </div>
-      <SpendCapSidePanel visible={showSpendCapPanel} onClose={() => setShowSpendCapPanel(false)} />
+      <SpendCapSidePanel />
     </>
   )
 }

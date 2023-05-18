@@ -9,24 +9,24 @@ import { BASE_PATH } from 'lib/constants'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Alert, Button, IconExternalLink, Radio, SidePanel } from 'ui'
-
-export interface PITRSidePanelProps {
-  visible: boolean
-  onClose: () => void
-}
+import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 
 const PITR_CATEGORY_OPTIONS: { id: 'off' | 'on'; name: string; imageUrl: string }[] = [
   { id: 'off', name: 'No point in time recovery', imageUrl: `${BASE_PATH}/img/pitr-off.svg` },
   { id: 'on', name: 'Enable point in time recovery', imageUrl: `${BASE_PATH}/img/pitr-on.svg` },
 ]
 
-const PITRSidePanel = ({ visible, onClose }: PITRSidePanelProps) => {
+const PITRSidePanel = () => {
   const { ui } = useStore()
   const { ref: projectRef } = useParams()
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<'on' | 'off'>('off')
   const [selectedOption, setSelectedOption] = useState<string>('pitr_0')
+
+  const snap = useSubscriptionPageStateSnapshot()
+  const visible = snap.panelKey === 'pitr'
+  const onClose = () => snap.setPanelKey(undefined)
 
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
   const { mutateAsync: updateAddon } = useProjectAddonUpdateMutation()

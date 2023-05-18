@@ -7,12 +7,8 @@ import { BASE_PATH, PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 import { Alert, Button, IconExternalLink, SidePanel } from 'ui'
-
-export interface SpendCapSidePanelProps {
-  visible: boolean
-  onClose: () => void
-}
 
 const SPEND_CAP_OPTIONS: { name: string; value: 'on' | 'off'; imageUrl: string }[] = [
   {
@@ -27,14 +23,21 @@ const SPEND_CAP_OPTIONS: { name: string; value: 'on' | 'off'; imageUrl: string }
   },
 ]
 
-const SpendCapSidePanel = ({ visible, onClose }: SpendCapSidePanelProps) => {
+const SpendCapSidePanel = () => {
   const { ui } = useStore()
   const { ref: projectRef } = useParams()
+
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [selectedOption, setSelectedOption] = useState<'on' | 'off'>()
+
+  const snap = useSubscriptionPageStateSnapshot()
+  const visible = snap.panelKey === 'costControl'
+  const onClose = () => snap.setPanelKey(undefined)
+
   const { data: subscription, isLoading } = useProjectSubscriptionV2Query({ projectRef })
   const { mutateAsync: updateSubscriptionTier } = useProjectSubscriptionUpdateMutation()
 
+  const isFreePlan = subscription?.tier.supabase_prod_id === PRICING_TIER_PRODUCT_IDS.FREE
   const isSpendCapOn = [PRICING_TIER_PRODUCT_IDS.FREE, PRICING_TIER_PRODUCT_IDS.PRO].includes(
     subscription?.tier?.supabase_prod_id ?? ''
   )
@@ -76,7 +79,7 @@ const SpendCapSidePanel = ({ visible, onClose }: SpendCapSidePanelProps) => {
     <SidePanel
       size="large"
       loading={isLoading || isSubmitting}
-      disabled={isLoading || !hasChanges || isSubmitting}
+      disabled={isFreePlan || isLoading || !hasChanges || isSubmitting}
       visible={visible}
       onCancel={onClose}
       onConfirm={onConfirm}
@@ -100,6 +103,21 @@ const SpendCapSidePanel = ({ visible, onClose }: SpendCapSidePanelProps) => {
             exceed the included quota allowance of any billed line item in a billing cycle
           </p>
 
+          {isFreePlan && (
+            <Alert
+              withIcon
+              variant="info"
+              title="Toggling of the spend cap is only available on the Pro plan"
+              actions={
+                <Button type="default" onClick={() => snap.setPanelKey('subscriptionPlan')}>
+                  View available plans
+                </Button>
+              }
+            >
+              Upgrade your project's plan to disable the spend cap
+            </Alert>
+          )}
+
           <div className="!mt-8 pb-4">
             <div className="grid grid-cols-12 gap-3">
               {SPEND_CAP_OPTIONS.map((option) => {
@@ -108,13 +126,14 @@ const SpendCapSidePanel = ({ visible, onClose }: SpendCapSidePanelProps) => {
                 return (
                   <div
                     key={option.value}
-                    className="col-span-4 group space-y-1"
-                    onClick={() => setSelectedOption(option.value)}
+                    className={clsx('col-span-4 group space-y-1', isFreePlan && 'opacity-75')}
+                    onClick={() => !isFreePlan && setSelectedOption(option.value)}
                   >
                     <div
                       style={{ aspectRatio: ' 160/96' }}
                       className={clsx(
-                        'relative cursor-pointer rounded-xl transition border  group-hover:border-scale-1100',
+                        'relative rounded-xl transition border',
+                        !isFreePlan ? 'group-hover:border-scale-1100 cursor-pointer' : '',
                         isSelected ? 'border-scale-1200' : 'border-transparent'
                       )}
                     >
@@ -122,7 +141,8 @@ const SpendCapSidePanel = ({ visible, onClose }: SpendCapSidePanelProps) => {
                     </div>
                     <p
                       className={clsx(
-                        'text-sm group-hover:text-scale-1200 transition',
+                        'text-sm transition',
+                        !isFreePlan && 'group-hover:text-scale-1200',
                         isSelected ? 'text-scale-1200' : 'text-scale-1000'
                       )}
                     >

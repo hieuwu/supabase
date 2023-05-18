@@ -9,12 +9,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
+import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 import { Alert, Button, IconExternalLink, Modal, Radio, SidePanel } from 'ui'
-
-export interface ComputeInstanceSidePanelProps {
-  visible: boolean
-  onClose: () => void
-}
 
 const COMPUTE_CATEGORY_OPTIONS: { id: 'micro' | 'optimized'; name: string; imageUrl: string }[] = [
   { id: 'micro', name: 'Micro Compute', imageUrl: `${BASE_PATH}/img/optimized-compute-off.svg` },
@@ -25,7 +21,7 @@ const COMPUTE_CATEGORY_OPTIONS: { id: 'micro' | 'optimized'; name: string; image
   },
 ]
 
-const ComputeInstanceSidePanel = ({ visible, onClose }: ComputeInstanceSidePanelProps) => {
+const ComputeInstanceSidePanel = () => {
   const { ui, app } = useStore()
   const router = useRouter()
   const { ref: projectRef } = useParams()
@@ -34,6 +30,10 @@ const ComputeInstanceSidePanel = ({ visible, onClose }: ComputeInstanceSidePanel
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<'micro' | 'optimized'>('micro')
   const [selectedOption, setSelectedOption] = useState<string>('ci_micro')
+
+  const snap = useSubscriptionPageStateSnapshot()
+  const visible = snap.panelKey === 'computeInstance'
+  const onClose = () => snap.setPanelKey(undefined)
 
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
   const { mutateAsync: updateAddon } = useProjectAddonUpdateMutation()

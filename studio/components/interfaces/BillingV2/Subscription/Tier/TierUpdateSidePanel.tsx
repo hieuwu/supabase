@@ -15,13 +15,9 @@ import MembersExceedLimitModal from './MembersExceedLimitModal'
 import ExitSurveyModal from './ExitSurveyModal'
 import { useProjectPlansQuery } from 'data/subscriptions/project-plans-query'
 import ShimmeringLoader from 'components/ui/ShimmeringLoader'
+import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 
-export interface TierUpdateSidePanelProps {
-  visible: boolean
-  onClose: () => void
-}
-
-const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => {
+const TierUpdateSidePanel = () => {
   const { ui } = useStore()
   const slug = ui.selectedOrganization?.slug
   const { ref: projectRef } = useParams()
@@ -30,6 +26,10 @@ const TierUpdateSidePanel = ({ visible, onClose }: TierUpdateSidePanelProps) => 
   const [showExitSurvey, setShowExitSurvey] = useState(false)
   const [showDowngradeError, setShowDowngradeError] = useState(false)
   const [selectedTier, setSelectedTier] = useState<'tier_free' | 'tier_pro' | 'tier_team'>()
+
+  const snap = useSubscriptionPageStateSnapshot()
+  const visible = snap.panelKey === 'subscriptionPlan'
+  const onClose = () => snap.setPanelKey(undefined)
 
   const { data: plans, isLoading: isLoadingPlans } = useProjectPlansQuery({ projectRef })
   const { data: addons } = useProjectAddonsQuery({ projectRef })

@@ -6,7 +6,7 @@ import { useFlag } from 'hooks'
 import { BASE_PATH, PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 import { Alert, Button, IconExternalLink } from 'ui'
 import { getAddons } from '../Subscription.utils'
 import ComputeInstanceSidePanel from './ComputeInstanceSidePanel'
@@ -17,9 +17,9 @@ export interface AddOnsProps {}
 
 const AddOns = ({}: AddOnsProps) => {
   const { ref: projectRef } = useParams()
+  const snap = useSubscriptionPageStateSnapshot()
   // [JOSHEN TODO] Double check if still valid
   const projectUpdateDisabled = useFlag('disableProjectCreationAndUpdate')
-  const [addonUpdate, setAddonUpdate] = useState<'computeInstance' | 'pitr' | 'customDomain'>()
 
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
   const { data: subscription } = useProjectSubscriptionV2Query({ projectRef })
@@ -125,7 +125,7 @@ const AddOns = ({}: AddOnsProps) => {
                     type="default"
                     className="mt-2"
                     disabled={isFreeTier}
-                    onClick={() => setAddonUpdate('computeInstance')}
+                    onClick={() => snap.setPanelKey('computeInstance')}
                   >
                     Change optimized compute
                   </Button>
@@ -189,7 +189,7 @@ const AddOns = ({}: AddOnsProps) => {
                     type="default"
                     className="mt-2"
                     disabled={isFreeTier}
-                    onClick={() => setAddonUpdate('pitr')}
+                    onClick={() => snap.setPanelKey('pitr')}
                   >
                     Change point in time recovery
                   </Button>
@@ -224,7 +224,7 @@ const AddOns = ({}: AddOnsProps) => {
                     type="default"
                     className="mt-2"
                     disabled={isFreeTier}
-                    onClick={() => setAddonUpdate('customDomain')}
+                    onClick={() => snap.setPanelKey('customDomain')}
                   >
                     Change custom domain
                   </Button>
@@ -237,15 +237,9 @@ const AddOns = ({}: AddOnsProps) => {
         )}
       </div>
 
-      <ComputeInstanceSidePanel
-        visible={addonUpdate === 'computeInstance'}
-        onClose={() => setAddonUpdate(undefined)}
-      />
-      <PITRSidePanel visible={addonUpdate === 'pitr'} onClose={() => setAddonUpdate(undefined)} />
-      <CustomDomainSidePanel
-        visible={addonUpdate === 'customDomain'}
-        onClose={() => setAddonUpdate(undefined)}
-      />
+      <ComputeInstanceSidePanel />
+      <PITRSidePanel />
+      <CustomDomainSidePanel />
     </>
   )
 }

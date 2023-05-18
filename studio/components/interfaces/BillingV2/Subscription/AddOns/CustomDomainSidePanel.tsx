@@ -5,18 +5,20 @@ import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
 import { useStore } from 'hooks'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 import { Button, IconExternalLink, Radio, SidePanel } from 'ui'
 
-export interface CustomDomainSidePanelProps {
-  visible: boolean
-  onClose: () => void
-}
-
-const CustomDomainSidePanel = ({ visible, onClose }: CustomDomainSidePanelProps) => {
+const CustomDomainSidePanel = () => {
   const { ui } = useStore()
   const { ref: projectRef } = useParams()
+
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [selectedOption, setSelectedOption] = useState<string>('cd_none')
+
+  const snap = useSubscriptionPageStateSnapshot()
+  const visible = snap.panelKey === 'customDomain'
+  const onClose = () => snap.setPanelKey(undefined)
+
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
   const { mutateAsync: updateAddon } = useProjectAddonUpdateMutation()
   const { mutateAsync: removeAddon } = useProjectAddonRemoveMutation()

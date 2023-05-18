@@ -4,7 +4,7 @@ import SparkBar from 'components/ui/SparkBar'
 import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import dayjs from 'dayjs'
 import { PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
-import { useState } from 'react'
+import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 import { Alert, Button } from 'ui'
 import TierUpdateSidePanel from './TierUpdateSidePanel'
 
@@ -12,7 +12,7 @@ export interface SubscriptionTierProps {}
 
 const SubscriptionTier = ({}: SubscriptionTierProps) => {
   const { ref: projectRef } = useParams()
-  const [showUpdatePanel, setShowUpdatePanel] = useState(false)
+  const snap = useSubscriptionPageStateSnapshot()
   const { data: subscription, isLoading } = useProjectSubscriptionV2Query({ projectRef })
 
   const currentTier = subscription?.tier?.supabase_prod_id ?? ''
@@ -62,7 +62,7 @@ const SubscriptionTier = ({}: SubscriptionTierProps) => {
               <Button
                 type="default"
                 disabled={!canChangeTier}
-                onClick={() => setShowUpdatePanel(true)}
+                onClick={() => snap.setPanelKey('subscriptionPlan')}
               >
                 Change subscription plan
               </Button>
@@ -94,7 +94,7 @@ const SubscriptionTier = ({}: SubscriptionTierProps) => {
         )}
       </div>
 
-      <TierUpdateSidePanel visible={showUpdatePanel} onClose={() => setShowUpdatePanel(false)} />
+      <TierUpdateSidePanel />
     </>
   )
 }
