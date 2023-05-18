@@ -3,8 +3,9 @@ import { useParams } from 'common'
 import { useProjectAddonRemoveMutation } from 'data/subscriptions/project-addon-remove-mutation'
 import { useProjectAddonUpdateMutation } from 'data/subscriptions/project-addon-update-mutation'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
+import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import { useStore } from 'hooks'
-import { BASE_PATH, PROJECT_STATUS } from 'lib/constants'
+import { BASE_PATH, PRICING_TIER_PRODUCT_IDS, PROJECT_STATUS } from 'lib/constants'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -36,6 +37,7 @@ const ComputeInstanceSidePanel = () => {
   const onClose = () => snap.setPanelKey(undefined)
 
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
+  const { data: subscription } = useProjectSubscriptionV2Query({ projectRef })
   const { mutateAsync: updateAddon } = useProjectAddonUpdateMutation()
   const { mutateAsync: removeAddon } = useProjectAddonRemoveMutation()
 
@@ -43,6 +45,7 @@ const ComputeInstanceSidePanel = () => {
   const selectedAddons = addons?.selected_addons ?? []
   const availableAddons = addons?.available_addons ?? []
 
+  const isFreePlan = subscription?.tier.supabase_prod_id === PRICING_TIER_PRODUCT_IDS.FREE
   const subscriptionCompute = selectedAddons.find((addon) => addon.type === 'compute_instance')
   const availableOptions =
     availableAddons.find((addon) => addon.type === 'compute_instance')?.variants ?? []
@@ -100,7 +103,7 @@ const ComputeInstanceSidePanel = () => {
         onCancel={onClose}
         onConfirm={() => setShowConfirmationModal(true)}
         loading={isLoading}
-        disabled={isLoading || !hasChanges}
+        disabled={isFreePlan || isLoading || !hasChanges}
         header={
           <div className="flex items-center justify-between">
             <h4>Change project compute size</h4>
@@ -121,14 +124,29 @@ const ComputeInstanceSidePanel = () => {
               database instance.
             </p>
 
-            <Alert
-              withIcon
-              variant="info"
-              title="Your project will need to be restarted when changing it's compute size"
-            >
-              It will take up to 2 minutes for changes to take place, in which your project will be
-              unavailable during that time.
-            </Alert>
+            {isFreePlan ? (
+              <Alert
+                withIcon
+                variant="info"
+                title="Changing your compute size is only available on the Pro plan"
+                actions={
+                  <Button type="default" onClick={() => snap.setPanelKey('subscriptionPlan')}>
+                    View available plans
+                  </Button>
+                }
+              >
+                Upgrade your project's plan to change the compute size of your project
+              </Alert>
+            ) : (
+              <Alert
+                withIcon
+                variant="info"
+                title="Your project will need to be restarted when changing it's compute size"
+              >
+                It will take up to 2 minutes for changes to take place, in which your project will
+                be unavailable during that time.
+              </Alert>
+            )}
 
             <div className="!mt-8 pb-4">
               <div className="grid grid-cols-12 gap-3">
@@ -137,8 +155,9 @@ const ComputeInstanceSidePanel = () => {
                   return (
                     <div
                       key={option.id}
-                      className="col-span-3 group space-y-1"
+                      className={clsx('col-span-3 group space-y-1', isFreePlan && 'opacity-75')}
                       onClick={() => {
+                        if (isFreePlan) return
                         setSelectedCategory(option.id)
                         if (option.id === 'micro') setSelectedOption('ci_micro')
                       }}
@@ -146,10 +165,10 @@ const ComputeInstanceSidePanel = () => {
                       <div
                         style={{ aspectRatio: ' 160/96' }}
                         className={clsx(
-                          'relative cursor-pointer rounded-xl transition border',
-                          isSelected
-                            ? 'border-scale-1200'
-                            : 'border-transparent opacity-50 group-hover:opacity-100 group-hover:border-scale-1000'
+                          'relative rounded-xl transition border',
+                          !isFreePlan &&
+                            'group-hover:border-scale-1100 cursor-pointer group-hover:opacity-100',
+                          isSelected ? 'border-scale-1200' : 'border-transparent opacity-50'
                         )}
                       >
                         <Image layout="fill" objectFit="contain" src={option.imageUrl} />

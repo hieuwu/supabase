@@ -1,12 +1,15 @@
+import clsx from 'clsx'
 import { useParams } from 'common'
 import { useProjectAddonRemoveMutation } from 'data/subscriptions/project-addon-remove-mutation'
 import { useProjectAddonUpdateMutation } from 'data/subscriptions/project-addon-update-mutation'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
+import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import { useStore } from 'hooks'
+import { PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
-import { Button, IconExternalLink, Radio, SidePanel } from 'ui'
+import { Alert, Button, IconExternalLink, Radio, SidePanel } from 'ui'
 
 const CustomDomainSidePanel = () => {
   const { ui } = useStore()
@@ -20,6 +23,7 @@ const CustomDomainSidePanel = () => {
   const onClose = () => snap.setPanelKey(undefined)
 
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
+  const { data: subscription } = useProjectSubscriptionV2Query({ projectRef })
   const { mutateAsync: updateAddon } = useProjectAddonUpdateMutation()
   const { mutateAsync: removeAddon } = useProjectAddonRemoveMutation()
 
@@ -29,6 +33,7 @@ const CustomDomainSidePanel = () => {
   const availableOptions =
     (addons?.available_addons ?? []).find((addon) => addon.type === 'custom_domain')?.variants ?? []
 
+  const isFreePlan = subscription?.tier.supabase_prod_id === PRICING_TIER_PRODUCT_IDS.FREE
   const hasChanges = selectedOption !== (subscriptionCDOption?.variant.identifier ?? 'cd_none')
 
   useEffect(() => {
@@ -78,7 +83,7 @@ const CustomDomainSidePanel = () => {
       onCancel={onClose}
       onConfirm={onConfirm}
       loading={isLoading || isSubmitting}
-      disabled={isLoading || !hasChanges || isSubmitting}
+      disabled={isFreePlan || isLoading || !hasChanges || isSubmitting}
       header={
         <div className="flex items-center justify-between">
           <h4>Custom domains</h4>
@@ -103,9 +108,24 @@ const CustomDomainSidePanel = () => {
             page after enabling the add-on.
           </p>
 
-          <p className="text-sm">Your project can be upgraded to enable custom domains.</p>
+          {isFreePlan ? (
+            <Alert
+              withIcon
+              variant="info"
+              title="Changing your compute size is only available on the Pro plan"
+              actions={
+                <Button type="default" onClick={() => snap.setPanelKey('subscriptionPlan')}>
+                  View available plans
+                </Button>
+              }
+            >
+              Upgrade your project's plan to change the compute size of your project
+            </Alert>
+          ) : (
+            <p className="text-sm">Your project can be upgraded to enable custom domains.</p>
+          )}
 
-          <div className="!mt-8 pb-4">
+          <div className={clsx('!mt-8 pb-4', isFreePlan && 'opacity-75')}>
             <Radio.Group
               type="large-cards"
               size="tiny"
@@ -130,6 +150,7 @@ const CustomDomainSidePanel = () => {
                   className="col-span-4"
                   name="custom-domain"
                   key={option.identifier}
+                  disabled={isFreePlan}
                   checked={selectedOption === option.identifier}
                   label={<span className="text-sm">{option.name}</span>}
                   value={option.identifier}

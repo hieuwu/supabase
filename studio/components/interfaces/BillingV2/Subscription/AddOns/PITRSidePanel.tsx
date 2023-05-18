@@ -5,11 +5,12 @@ import { useProjectAddonRemoveMutation } from 'data/subscriptions/project-addon-
 import { useProjectAddonUpdateMutation } from 'data/subscriptions/project-addon-update-mutation'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
 import { useStore } from 'hooks'
-import { BASE_PATH } from 'lib/constants'
+import { BASE_PATH, PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Alert, Button, IconExternalLink, Radio, SidePanel } from 'ui'
 import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
+import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 
 const PITR_CATEGORY_OPTIONS: { id: 'off' | 'on'; name: string; imageUrl: string }[] = [
   { id: 'off', name: 'No point in time recovery', imageUrl: `${BASE_PATH}/img/pitr-off.svg` },
@@ -29,6 +30,7 @@ const PITRSidePanel = () => {
   const onClose = () => snap.setPanelKey(undefined)
 
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
+  const { data: subscription } = useProjectSubscriptionV2Query({ projectRef })
   const { mutateAsync: updateAddon } = useProjectAddonUpdateMutation()
   const { mutateAsync: removeAddon } = useProjectAddonRemoveMutation()
 
@@ -41,6 +43,7 @@ const PITRSidePanel = () => {
 
   const hasChanges = selectedOption !== (subscriptionPitr?.variant.identifier ?? 'pitr_0')
   const selectedPitr = availableOptions.find((option) => option.identifier === selectedOption)
+  const isFreePlan = subscription?.tier.supabase_prod_id === PRICING_TIER_PRODUCT_IDS.FREE
 
   useEffect(() => {
     if (visible) {
@@ -91,7 +94,7 @@ const PITRSidePanel = () => {
       onCancel={onClose}
       onConfirm={onConfirm}
       loading={isLoading || isSubmitting}
-      disabled={isLoading || !hasChanges || isSubmitting}
+      disabled={isFreePlan || isLoading || !hasChanges || isSubmitting}
       header={
         <div className="flex items-center justify-between">
           <h4>Point in Time Recovery</h4>
@@ -113,7 +116,20 @@ const PITRSidePanel = () => {
             in granularity.
           </p>
 
-          {subscriptionCompute === undefined && (
+          {isFreePlan ? (
+            <Alert
+              withIcon
+              variant="info"
+              title="Changing your compute size is only available on the Pro plan"
+              actions={
+                <Button type="default" onClick={() => snap.setPanelKey('subscriptionPlan')}>
+                  View available plans
+                </Button>
+              }
+            >
+              Upgrade your project's plan to change the compute size of your project
+            </Alert>
+          ) : subscriptionCompute === undefined ? (
             <Alert
               withIcon
               variant="warning"
@@ -121,7 +137,7 @@ const PITRSidePanel = () => {
             >
               This is to ensure that your project has enough resources to execute PITR successfully
             </Alert>
-          )}
+          ) : null}
 
           <div className="!mt-8 pb-4">
             <div className="grid grid-cols-12 gap-3">
@@ -130,7 +146,7 @@ const PITRSidePanel = () => {
                 return (
                   <div
                     key={option.id}
-                    className="col-span-3 group space-y-1"
+                    className={clsx('col-span-3 group space-y-1', isFreePlan && 'opacity-75')}
                     onClick={() => {
                       if (subscriptionCompute !== undefined) {
                         setSelectedCategory(option.id)
@@ -141,10 +157,10 @@ const PITRSidePanel = () => {
                     <div
                       style={{ aspectRatio: ' 160/96' }}
                       className={clsx(
-                        'relative cursor-pointer rounded-xl transition border',
-                        isSelected
-                          ? 'border-scale-1200'
-                          : 'border-transparent opacity-50 group-hover:opacity-100 group-hover:border-scale-1000'
+                        'relative rounded-xl transition border',
+                        !isFreePlan &&
+                          'group-hover:border-scale-1100 cursor-pointer group-hover:opacity-100',
+                        isSelected ? 'border-scale-1200' : 'border-transparent opacity-50'
                       )}
                     >
                       <Image layout="fill" objectFit="contain" src={option.imageUrl} />
@@ -175,7 +191,7 @@ const PITRSidePanel = () => {
                 {availableOptions.map((option) => (
                   <Radio
                     name="pitr"
-                    disabled={subscriptionCompute === undefined}
+                    disabled={isFreePlan || subscriptionCompute === undefined}
                     className="col-span-3 !p-0"
                     key={option.identifier}
                     checked={selectedOption === option.identifier}

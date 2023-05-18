@@ -1,13 +1,12 @@
 import { useParams } from 'common'
 import ShimmeringLoader from 'components/ui/ShimmeringLoader'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
-import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import { useFlag } from 'hooks'
-import { BASE_PATH, PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
+import { BASE_PATH } from 'lib/constants'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
-import { Alert, Button, IconExternalLink } from 'ui'
+import { Button, IconExternalLink } from 'ui'
 import { getAddons } from '../Subscription.utils'
 import ComputeInstanceSidePanel from './ComputeInstanceSidePanel'
 import CustomDomainSidePanel from './CustomDomainSidePanel'
@@ -22,8 +21,6 @@ const AddOns = ({}: AddOnsProps) => {
   const projectUpdateDisabled = useFlag('disableProjectCreationAndUpdate')
 
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
-  const { data: subscription } = useProjectSubscriptionV2Query({ projectRef })
-  const isFreeTier = subscription?.tier.supabase_prod_id === PRICING_TIER_PRODUCT_IDS.FREE
   const selectedAddons = addons?.selected_addons ?? []
   const availableAddons = addons?.available_addons ?? []
 
@@ -44,7 +41,7 @@ const AddOns = ({}: AddOnsProps) => {
             <div className="space-y-6">
               <div>
                 <p className="text-base">Add ons</p>
-                <p className="text-sm text-scale-1000">[TODO] Some description text here</p>
+                <p className="text-sm text-scale-1000">Level up your project with add-ons</p>
               </div>
               <div className="space-y-2">
                 <p className="text-sm text-scale-1100">More information</p>
@@ -90,18 +87,6 @@ const AddOns = ({}: AddOnsProps) => {
           </div>
         ) : (
           <div className="col-span-12 lg:col-span-7 space-y-6">
-            <p className="text-sm text-scale-1000">[TODO] Some description text here</p>
-
-            {isFreeTier && (
-              <Alert
-                withIcon
-                variant="info"
-                title="You will need to be on the Pro tier to change your add ons"
-              >
-                Some description text here
-              </Alert>
-            )}
-
             <div className="py-2 space-y-6">
               {/* Compute add on selection */}
               <div className="flex space-x-6">
@@ -124,7 +109,6 @@ const AddOns = ({}: AddOnsProps) => {
                   <Button
                     type="default"
                     className="mt-2"
-                    disabled={isFreeTier}
                     onClick={() => snap.setPanelKey('computeInstance')}
                   >
                     Change optimized compute
@@ -185,12 +169,7 @@ const AddOns = ({}: AddOnsProps) => {
                         } days is enabled`
                       : 'Point in time recovery is not enabled'}
                   </p>
-                  <Button
-                    type="default"
-                    className="mt-2"
-                    disabled={isFreeTier}
-                    onClick={() => snap.setPanelKey('pitr')}
-                  >
+                  <Button type="default" className="mt-2" onClick={() => snap.setPanelKey('pitr')}>
                     Change point in time recovery
                   </Button>
                 </div>
@@ -223,7 +202,6 @@ const AddOns = ({}: AddOnsProps) => {
                   <Button
                     type="default"
                     className="mt-2"
-                    disabled={isFreeTier}
                     onClick={() => snap.setPanelKey('customDomain')}
                   >
                     Change custom domain
@@ -231,8 +209,6 @@ const AddOns = ({}: AddOnsProps) => {
                 </div>
               </div>
             </div>
-
-            <p className="text-sm text-scale-1000">[TODO] Some description text here</p>
           </div>
         )}
       </div>

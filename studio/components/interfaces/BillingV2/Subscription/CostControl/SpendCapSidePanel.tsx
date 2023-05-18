@@ -133,7 +133,7 @@ const SpendCapSidePanel = () => {
                       style={{ aspectRatio: ' 160/96' }}
                       className={clsx(
                         'relative rounded-xl transition border',
-                        !isFreePlan ? 'group-hover:border-scale-1100 cursor-pointer' : '',
+                        !isFreePlan && 'group-hover:border-scale-1100 cursor-pointer',
                         isSelected ? 'border-scale-1200' : 'border-transparent'
                       )}
                     >

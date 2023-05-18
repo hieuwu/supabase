@@ -46,18 +46,6 @@ const CostControl = ({}: CostControlProps) => {
               simply switch off your spend cap to pay for additional usage.
             </p>
 
-            {currentTier === PRICING_TIER_PRODUCT_IDS.FREE && (
-              <Alert
-                withIcon
-                variant="info"
-                title="You will need to be on the Pro tier to disable spend caps"
-              >
-                Spend cap is enabled by default on the Free tier. While your project will not be
-                charged any extra for usage, your project will experience downtime if you exceed the
-                included quota
-              </Alert>
-            )}
-
             {currentTier === PRICING_TIER_PRODUCT_IDS.TEAM && (
               <Alert
                 withIcon
