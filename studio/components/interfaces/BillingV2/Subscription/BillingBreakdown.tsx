@@ -82,6 +82,7 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
                     ? (usageMeta?.usage ?? 0) / (usageMeta?.limit ?? 0)
                     : 0
 
+                const hasLimit = usageMeta.limit > 0
                 const usageCurrentLabel =
                   metric.units === 'bytes'
                     ? formatBytes(usageMeta.usage)
@@ -90,7 +91,7 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
                   metric.units === 'bytes'
                     ? formatBytes(usageMeta.limit)
                     : usageMeta.limit.toLocaleString()
-                const usageLabel = `${usageCurrentLabel} of ${usageLimitLabel}`
+                const usageLabel = `${usageCurrentLabel} ${hasLimit ? `of ${usageLimitLabel}` : ''}`
                 const percentageLabel = `${(usageRatio * 100).toFixed(2)}%`
 
                 const isApproachingLimit = usageRatio >= USAGE_APPROACHING_THRESHOLD
@@ -138,7 +139,9 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
                         max={usageMeta.limit}
                         value={usageMeta.usage ?? 0}
                         barClass={
-                          isExceededLimit && !isUsageBillingEnabled
+                          !hasLimit
+                            ? 'bg-scale-1100'
+                            : isExceededLimit && !isUsageBillingEnabled
                             ? 'bg-red-900'
                             : isApproachingLimit
                             ? 'bg-amber-900'
@@ -146,9 +149,11 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
                         }
                         labelBottom={usageLabel}
                         labelBottomClass="!text-scale-1000"
-                        labelTop={percentageLabel}
+                        labelTop={hasLimit ? percentageLabel : undefined}
                         labelTopClass={
-                          isExceededLimit && !isUsageBillingEnabled
+                          !hasLimit
+                            ? ''
+                            : isExceededLimit && !isUsageBillingEnabled
                             ? '!text-red-900'
                             : isApproachingLimit
                             ? '!text-amber-900'
