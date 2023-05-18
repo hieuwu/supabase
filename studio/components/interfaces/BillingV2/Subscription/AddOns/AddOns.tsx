@@ -1,17 +1,17 @@
 import { useParams } from 'common'
 import ShimmeringLoader from 'components/ui/ShimmeringLoader'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
-import { BASE_PATH, PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
-import Image from 'next/image'
-import { Alert, Button, IconExternalLink } from 'ui'
-import { getAddons } from '../Subscription.utils'
-import Link from 'next/link'
-import ComputeInstanceSidePanel from './ComputeInstanceSidePanel'
-import { useState } from 'react'
-import CustomDomainSidePanel from './CustomDomainSidePanel'
-import PITRSidePanel from './PITRSidePanel'
 import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import { useFlag } from 'hooks'
+import { BASE_PATH, PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useState } from 'react'
+import { Alert, Button, IconExternalLink } from 'ui'
+import { getAddons } from '../Subscription.utils'
+import ComputeInstanceSidePanel from './ComputeInstanceSidePanel'
+import CustomDomainSidePanel from './CustomDomainSidePanel'
+import PITRSidePanel from './PITRSidePanel'
 
 export interface AddOnsProps {}
 
@@ -38,8 +38,8 @@ const AddOns = ({}: AddOnsProps) => {
 
   return (
     <>
-      <div className="grid grid-cols-12">
-        <div className="col-span-5">
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-12 lg:col-span-5">
           <div className="sticky top-16">
             <div className="space-y-6">
               <div>
@@ -83,13 +83,13 @@ const AddOns = ({}: AddOnsProps) => {
           </div>
         </div>
         {isLoading ? (
-          <div className="col-span-7 space-y-2">
+          <div className="col-span-12 lg:col-span-7 space-y-2">
             <ShimmeringLoader />
             <ShimmeringLoader className="w-3/4" />
             <ShimmeringLoader className="w-1/2" />
           </div>
         ) : (
-          <div className="col-span-7 space-y-6">
+          <div className="col-span-12 lg:col-span-7 space-y-6">
             <p className="text-sm text-scale-1000">[TODO] Some description text here</p>
 
             {isFreeTier && (

@@ -3,9 +3,9 @@ import ShimmeringLoader from 'components/ui/ShimmeringLoader'
 import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import { BASE_PATH, PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import Image from 'next/image'
-import { Alert, Button, IconAlertCircle } from 'ui'
-import SpendCapSidePanel from './SpendCapSidePanel'
 import { useState } from 'react'
+import { Alert, Button } from 'ui'
+import SpendCapSidePanel from './SpendCapSidePanel'
 
 export interface CostControlProps {}
 
@@ -24,21 +24,21 @@ const CostControl = ({}: CostControlProps) => {
 
   return (
     <>
-      <div className="grid grid-cols-12">
-        <div className="col-span-5">
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-12 lg:col-span-5">
           <div className="sticky top-16">
             <p className="text-base">Cost control</p>
             <p className="text-sm text-scale-1000">Some description text here</p>
           </div>
         </div>
         {isLoading ? (
-          <div className="col-span-7 space-y-2">
+          <div className="col-span-12 lg:col-span-7 space-y-2">
             <ShimmeringLoader />
             <ShimmeringLoader className="w-3/4" />
             <ShimmeringLoader className="w-1/2" />
           </div>
         ) : (
-          <div className="col-span-7 space-y-6">
+          <div className="col-span-12 lg:col-span-7 space-y-6">
             <p className="text-sm text-scale-1000">
               You can control whether your project is charged for additional usage beyond the
               included quota of your subscription plan. If you need to go beyond the included quota,

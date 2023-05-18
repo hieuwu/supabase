@@ -4,9 +4,8 @@ import SparkBar from 'components/ui/SparkBar'
 import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import dayjs from 'dayjs'
 import { PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
-import Link from 'next/link'
 import { useState } from 'react'
-import { Alert, Button, IconAlertCircle } from 'ui'
+import { Alert, Button } from 'ui'
 import TierUpdateSidePanel from './TierUpdateSidePanel'
 
 export interface SubscriptionTierProps {}
@@ -42,18 +41,18 @@ const SubscriptionTier = ({}: SubscriptionTierProps) => {
 
   return (
     <>
-      <div className="grid grid-cols-12">
-        <div className="col-span-5">
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-12 lg:col-span-5">
           <p className="text-base sticky top-16">Subscription tier</p>
         </div>
         {isLoading ? (
-          <div className="col-span-7 space-y-2">
+          <div className="col-span-12 lg:col-span-7 space-y-2">
             <ShimmeringLoader />
             <ShimmeringLoader className="w-3/4" />
             <ShimmeringLoader className="w-1/2" />
           </div>
         ) : (
-          <div className="col-span-7 space-y-6">
+          <div className="col-span-12 lg:col-span-7 space-y-6">
             <div>
               <p className="text-sm">This project is currently on the tier:</p>
               <p className="text-2xl text-brand-900 uppercase">{tierName}</p>

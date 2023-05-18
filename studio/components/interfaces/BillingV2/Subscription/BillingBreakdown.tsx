@@ -36,21 +36,21 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
   const totalUsageFees = usageFees.reduce((a, b) => a + b.amount, 0)
 
   return (
-    <div className="grid grid-cols-12">
-      <div className="col-span-5">
+    <div className="grid grid-cols-12 gap-6">
+      <div className="col-span-12 lg:col-span-5">
         <div className="sticky top-16">
           <p className="text-base">Billing breakdown</p>
           <p className="text-sm text-scale-1000">Some description text here</p>
         </div>
       </div>
       {isLoadingSubscription ? (
-        <div className="col-span-7 space-y-2">
+        <div className="col-span-12 lg:col-span-7 space-y-2">
           <ShimmeringLoader />
           <ShimmeringLoader className="w-3/4" />
           <ShimmeringLoader className="w-1/2" />
         </div>
       ) : (
-        <div className="col-span-7 space-y-6">
+        <div className="col-span-12 lg:col-span-7 space-y-6">
           <p className="text-sm">Included usage summary</p>
           <p className="text-sm text-scale-1000">
             Your plan includes a limited amount of included usage. If the usage on your project
