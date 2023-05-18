@@ -7,6 +7,7 @@ import { PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 import { Alert, Button } from 'ui'
 import TierUpdateSidePanel from './TierUpdateSidePanel'
+import Link from 'next/link'
 
 export interface SubscriptionTierProps {}
 
@@ -67,6 +68,26 @@ const SubscriptionTier = ({}: SubscriptionTierProps) => {
                 Change subscription plan
               </Button>
             </div>
+            {!canChangeTier && (
+              <Alert
+                withIcon
+                variant="info"
+                title={`Unable to update plan from ${tierName}`}
+                actions={[
+                  <div>
+                    <Link
+                      href={`/support/new?ref=${projectRef}&category=sales&subject=Change%20plan%20away%20from%20${tierName}`}
+                    >
+                      <a>
+                        <Button type="default">Contact support</Button>
+                      </a>
+                    </Link>
+                  </div>,
+                ]}
+              >
+                Please contact us if you'd like to change your project's plan
+              </Alert>
+            )}
             {[PRICING_TIER_PRODUCT_IDS.FREE, PRICING_TIER_PRODUCT_IDS.PRO].includes(
               currentTier
             ) && (

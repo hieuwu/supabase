@@ -17,6 +17,7 @@ import { useState } from 'react'
 import { Button, Collapsible, IconAlertTriangle, IconChevronRight } from 'ui'
 import { BILLING_BREAKDOWN_METRICS } from './Subscription.constants'
 import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
+import Link from 'next/link'
 
 export interface BillingBreakdownProps {}
 
@@ -34,6 +35,7 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
   const billingCycleStart = dayjs.unix(subscription?.current_period_start ?? 0).utc()
   const billingCycleEnd = dayjs.unix(subscription?.current_period_end ?? 0).utc()
 
+  const isUsageBillingEnabled = subscription?.usage_billing_enabled
   const [usageFees, fixedFees] = partition(upcomingInvoice?.lines ?? [], (item) => item.usage_based)
   const totalUsageFees = usageFees.reduce((a, b) => a + b.amount, 0)
 
@@ -104,7 +106,20 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
                     )}
                   >
                     <div className="flex items-center justify-between">
-                      <p className="text-sm text-scale-1100">{metric.name}</p>
+                      <Link href={`/project/${projectRef}/settings/billing/usage`}>
+                        <a>
+                          <div className="group flex items-center space-x-2">
+                            <p className="text-sm text-scale-1100 group-hover:text-scale-1200 transition cursor-pointer">
+                              {metric.name}
+                            </p>
+                            <IconChevronRight
+                              strokeWidth={1.5}
+                              size={16}
+                              className="transition opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
+                            />
+                          </div>
+                        </a>
+                      </Link>
                       {isExceededLimit ? (
                         <div className="flex items-center space-x-2 min-w-[115px]">
                           <IconAlertTriangle size={14} strokeWidth={2} className="text-red-900" />
@@ -123,7 +138,7 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
                         max={usageMeta.limit}
                         value={usageMeta.usage ?? 0}
                         barClass={
-                          isExceededLimit
+                          isExceededLimit && !isUsageBillingEnabled
                             ? 'bg-red-900'
                             : isApproachingLimit
                             ? 'bg-amber-900'
@@ -133,7 +148,7 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
                         labelBottomClass="!text-scale-1000"
                         labelTop={percentageLabel}
                         labelTopClass={
-                          isExceededLimit
+                          isExceededLimit && !isUsageBillingEnabled
                             ? '!text-red-900'
                             : isApproachingLimit
                             ? '!text-amber-900'
