@@ -6,7 +6,7 @@ import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscr
 import { useFlag, useStore } from 'hooks'
 import { PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import { useEffect, useState } from 'react'
-import { Alert, Button, IconCheck, Modal, SidePanel } from 'ui'
+import { Alert, Button, IconCheck, IconExternalLink, Modal, SidePanel } from 'ui'
 import EnterpriseCard from './EnterpriseCard'
 import { SUBSCRIPTION_PLANS } from './Tier.constants'
 import PaymentMethodSelection from './PaymentMethodSelection'
@@ -16,6 +16,7 @@ import ExitSurveyModal from './ExitSurveyModal'
 import { useProjectPlansQuery } from 'data/subscriptions/project-plans-query'
 import ShimmeringLoader from 'components/ui/ShimmeringLoader'
 import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
+import Link from 'next/link'
 
 const TierUpdateSidePanel = () => {
   const { ui } = useStore()
@@ -94,7 +95,18 @@ const TierUpdateSidePanel = () => {
         size="xxlarge"
         visible={visible}
         onCancel={onClose}
-        header="Change subscription plan"
+        header={
+          <div className="flex items-center justify-between">
+            <h4>Change subscription plan</h4>
+            <Link href="https://supabase.com/pricing">
+              <a target="_blank" rel="noreferrer">
+                <Button type="default" icon={<IconExternalLink strokeWidth={1.5} />}>
+                  More information
+                </Button>
+              </a>
+            </Link>
+          </div>
+        }
       >
         <SidePanel.Content>
           <div className="py-6 grid grid-cols-12 gap-3">
