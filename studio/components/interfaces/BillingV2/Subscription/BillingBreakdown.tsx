@@ -45,6 +45,7 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
     Object.values(usage ?? {})
       .map((metric) => {
         if (typeof metric !== 'object') return false
+        if (metric.limit <= 0) return false
         if (metric.usage > metric.limit) return true
       })
       .includes(true)
