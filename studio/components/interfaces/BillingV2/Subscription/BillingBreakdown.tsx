@@ -16,11 +16,13 @@ import { partition } from 'lodash'
 import { useState } from 'react'
 import { Button, Collapsible, IconAlertTriangle, IconChevronRight } from 'ui'
 import { BILLING_BREAKDOWN_METRICS } from './Subscription.constants'
+import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 
 export interface BillingBreakdownProps {}
 
 const BillingBreakdown = ({}: BillingBreakdownProps) => {
   const { ref: projectRef } = useParams()
+  const snap = useSubscriptionPageStateSnapshot()
   const [showUsageFees, setShowUsageFees] = useState(false)
   const { data: usage, isLoading: isLoadingUsage } = useProjectUsageQuery({ projectRef })
   const { data: subscription, isLoading: isLoadingSubscription } = useProjectSubscriptionV2Query({
@@ -40,7 +42,10 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
       <div className="col-span-12 lg:col-span-5">
         <div className="sticky top-16">
           <p className="text-base">Billing breakdown</p>
-          <p className="text-sm text-scale-1000">Some description text here</p>
+          <p className="text-sm text-scale-1000">
+            Current billing cycle: {billingCycleStart.format('MMM DD')} -{' '}
+            {billingCycleEnd.format('MMM DD')}
+          </p>
         </div>
       </div>
       {isLoadingSubscription ? (
@@ -57,10 +62,6 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
             exceeds these quotas, your subscription will be charged for the extra usage.
             Organization owners are notified each time your project approaches or exceeds the
             included usage. Learn more
-          </p>
-          <p className="text-sm text-scale-1000">
-            Current billing cycle: {billingCycleStart.format('MMM DD')} -{' '}
-            {billingCycleEnd.format('MMM DD')}
           </p>
 
           {isLoadingUsage ? (
@@ -97,51 +98,65 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
                   <div
                     key={metric.key}
                     className={clsx(
-                      'col-span-6 py-4 space-y-4 border-scale-400',
+                      'col-span-6 py-4 border-scale-400',
                       i % 2 === 0 ? 'border-r pr-4' : 'pl-4',
-                      i < BILLING_BREAKDOWN_METRICS.length - 2 && 'border-b'
+                      i < BILLING_BREAKDOWN_METRICS.length - 2 && 'border-b',
+                      usageMeta.available_in_plan ? 'flex-col' : 'flex'
                     )}
                   >
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-scale-1100">{metric.name}</p>
-                      {isExceededLimit ? (
-                        <div className="flex items-center space-x-2 min-w-[115px]">
-                          <IconAlertTriangle size={14} strokeWidth={2} className="text-red-900" />
-                          <p className="text-sm text-red-900">Exceeded limit</p>
-                        </div>
-                      ) : isApproachingLimit ? (
-                        <div className="flex items-center space-x-2 min-w-[115px]">
-                          <IconAlertTriangle size={14} strokeWidth={2} className="text-amber-900" />
-                          <p className="text-sm text-amber-900">Reaching limit</p>
-                        </div>
-                      ) : null}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-scale-1100">{metric.name}</p>
+                        {isExceededLimit ? (
+                          <div className="flex items-center space-x-2 min-w-[115px]">
+                            <IconAlertTriangle size={14} strokeWidth={2} className="text-red-900" />
+                            <p className="text-sm text-red-900">Exceeded limit</p>
+                          </div>
+                        ) : isApproachingLimit ? (
+                          <div className="flex items-center space-x-2 min-w-[115px]">
+                            <IconAlertTriangle
+                              size={14}
+                              strokeWidth={2}
+                              className="text-amber-900"
+                            />
+                            <p className="text-sm text-amber-900">Reaching limit</p>
+                          </div>
+                        ) : null}
+                      </div>
+                      {usageMeta.available_in_plan ? (
+                        <SparkBar
+                          type="horizontal"
+                          max={usageMeta.limit}
+                          value={usageMeta.usage ?? 0}
+                          barClass={
+                            isExceededLimit
+                              ? 'bg-red-900'
+                              : isApproachingLimit
+                              ? 'bg-amber-900'
+                              : 'bg-scale-1100'
+                          }
+                          labelBottom={usageLabel}
+                          labelBottomClass="!text-scale-1000"
+                          labelTop={percentageLabel}
+                          labelTopClass={
+                            isExceededLimit
+                              ? '!text-red-900'
+                              : isApproachingLimit
+                              ? '!text-amber-900'
+                              : ''
+                          }
+                        />
+                      ) : (
+                        // [Joshen] Needs a better CTA here
+                        <p className="text-sm text-scale-1000">Unavailable in your plan</p>
+                      )}
                     </div>
-                    {usageMeta.available_in_plan ? (
-                      <SparkBar
-                        type="horizontal"
-                        max={usageMeta.limit}
-                        value={usageMeta.usage ?? 0}
-                        barClass={
-                          isExceededLimit
-                            ? 'bg-red-900'
-                            : isApproachingLimit
-                            ? 'bg-amber-900'
-                            : 'bg-scale-1100'
-                        }
-                        labelBottom={usageLabel}
-                        labelBottomClass="!text-scale-1000"
-                        labelTop={percentageLabel}
-                        labelTopClass={
-                          isExceededLimit
-                            ? '!text-red-900'
-                            : isApproachingLimit
-                            ? '!text-amber-900'
-                            : ''
-                        }
-                      />
-                    ) : (
-                      // [Joshen] Needs a better CTA here
-                      <p className="text-sm text-scale-1100">Unavailable in your plan</p>
+                    {!usageMeta.available_in_plan && (
+                      <div className="flex items-center justify-end flex-grow">
+                        <Button onClick={() => snap.setPanelKey('subscriptionPlan')}>
+                          Upgrade
+                        </Button>
+                      </div>
                     )}
                   </div>
                 )
@@ -154,10 +169,6 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
             The following table shows exactly what will be charged for your project at the end of
             its billing cycle on{' '}
             <span className="text-scale-1100">{billingCycleEnd.format('MMM DD, YYYY')}</span>.
-          </p>
-          <p className="text-sm text-scale-1000 !mt-2">
-            Current billing cycle: {billingCycleStart.format('MMM DD')} -{' '}
-            {billingCycleEnd.format('MMM DD')}
           </p>
 
           {isLoadingUpcomingInvoice ? (
