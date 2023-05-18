@@ -171,7 +171,7 @@ const SpendCapSidePanel = () => {
               title="Charges apply for usage beyond included quota allowance"
             >
               Your project will always remain responsive and active, and charges only apply when
-              exceeding the free quota limit.
+              exceeding the included quota limit.
             </Alert>
           )}
 
@@ -180,7 +180,7 @@ const SpendCapSidePanel = () => {
               <p className="text-sm">
                 {selectedOption === 'on'
                   ? 'Upon clicking confirm, spend cap will be enabled for your project and you will no longer be charged any extra for usage.'
-                  : 'Upon clicking confirm, spend cap will be disabled for your project and you will be charged for any usage above the free quota allowance'}
+                  : 'Upon clicking confirm, spend cap will be disabled for your project and you will be charged for any usage above the included quota'}
               </p>
             </>
           )}
