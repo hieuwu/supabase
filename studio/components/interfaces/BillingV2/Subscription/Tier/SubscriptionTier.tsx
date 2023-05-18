@@ -74,7 +74,7 @@ const SubscriptionTier = ({}: SubscriptionTierProps) => {
                 variant="info"
                 title={`Unable to update plan from ${tierName}`}
                 actions={[
-                  <div>
+                  <div key="contact-support">
                     <Link
                       href={`/support/new?ref=${projectRef}&category=sales&subject=Change%20plan%20away%20from%20${tierName}`}
                     >

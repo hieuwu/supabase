@@ -83,6 +83,7 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
               title="Your project's usage has exceeded its included quota"
               actions={[
                 <Button
+                  key="upgrade-button"
                   type="default"
                   className="ml-4"
                   onClick={() =>
