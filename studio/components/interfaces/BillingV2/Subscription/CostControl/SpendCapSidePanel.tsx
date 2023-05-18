@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { useParams } from 'common'
+import Table from 'components/to-be-cleaned/Table'
 import { useProjectSubscriptionUpdateMutation } from 'data/subscriptions/project-subscription-update-mutation'
 import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import { useStore } from 'hooks'
@@ -8,7 +9,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
-import { Alert, Button, IconExternalLink, SidePanel } from 'ui'
+import { Alert, Button, Collapsible, IconChevronRight, IconExternalLink, SidePanel } from 'ui'
+import { USAGE_COSTS } from './CostControl.constants'
 
 const SPEND_CAP_OPTIONS: { name: string; value: 'on' | 'off'; imageUrl: string }[] = [
   {
@@ -27,6 +29,7 @@ const SpendCapSidePanel = () => {
   const { ui } = useStore()
   const { ref: projectRef } = useParams()
 
+  const [showUsageCosts, setShowUsageCosts] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [selectedOption, setSelectedOption] = useState<'on' | 'off'>()
 
@@ -102,6 +105,60 @@ const SpendCapSidePanel = () => {
             Use the spend cap to manage project usage and costs, and control whether the project can
             exceed the included quota allowance of any billed line item in a billing cycle
           </p>
+
+          <Collapsible open={showUsageCosts} onOpenChange={setShowUsageCosts}>
+            <Collapsible.Trigger asChild>
+              <div className="flex items-center space-x-2 cursor-pointer">
+                <IconChevronRight
+                  strokeWidth={1.5}
+                  size={16}
+                  className={showUsageCosts ? 'rotate-90' : ''}
+                />
+                <p className="text-sm text-scale-1100">
+                  How are each resource charged after exceeding the included quota?
+                </p>
+              </div>
+            </Collapsible.Trigger>
+            <Collapsible.Content asChild>
+              <Table
+                className="mt-4"
+                head={
+                  <>
+                    <Table.th>
+                      <p className="text-xs">Item</p>
+                    </Table.th>
+                    <Table.th>
+                      <p className="text-xs">Rate</p>
+                    </Table.th>
+                  </>
+                }
+                body={USAGE_COSTS.map((category) => {
+                  return (
+                    <>
+                      <Table.tr key={category.category}>
+                        <Table.td>
+                          <p className="text-xs text-scale-1200">{category.category}</p>
+                        </Table.td>
+                        <Table.td>{null}</Table.td>
+                      </Table.tr>
+                      {category.items.map((item) => (
+                        <Table.tr key={item.name}>
+                          <Table.td>
+                            <p className="text-xs pl-4">{item.name}</p>
+                          </Table.td>
+                          <Table.td>
+                            <p className="text-xs">
+                              ${item.unit_amount} per {item.unit}
+                            </p>
+                          </Table.td>
+                        </Table.tr>
+                      ))}
+                    </>
+                  )
+                })}
+              />
+            </Collapsible.Content>
+          </Collapsible>
 
           {isFreePlan && (
             <Alert
