@@ -1,12 +1,15 @@
 import { useParams } from 'common'
 import ShimmeringLoader from 'components/ui/ShimmeringLoader'
+import { useInfraMonitoringQuery } from 'data/analytics/infra-monitoring-query'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
+import dayjs from 'dayjs'
 import { useFlag } from 'hooks'
 import { BASE_PATH } from 'lib/constants'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useMemo } from 'react'
 import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
-import { Button, IconExternalLink } from 'ui'
+import { Alert, Button, IconExternalLink } from 'ui'
 import { getAddons } from '../Subscription.utils'
 import ComputeInstanceSidePanel from './ComputeInstanceSidePanel'
 import CustomDomainSidePanel from './CustomDomainSidePanel'
@@ -19,6 +22,19 @@ const AddOns = ({}: AddOnsProps) => {
   const snap = useSubscriptionPageStateSnapshot()
   // [JOSHEN TODO] Double check if still valid
   const projectUpdateDisabled = useFlag('disableProjectCreationAndUpdate')
+
+  // [Joshen] We could possibly look into reducing the interval to be more "realtime"
+  // I tried setting the interval to 1m but no data was returned, may need to experiment
+  const startDate = useMemo(() => dayjs().subtract(15, 'minutes').millisecond(0).toISOString(), [])
+  const endDate = useMemo(() => dayjs().millisecond(0).toISOString(), [])
+  const { data: ioBudgetData } = useInfraMonitoringQuery({
+    projectRef,
+    attribute: 'disk_io_budget',
+    interval: '5m',
+    startDate,
+    endDate,
+  })
+  const [mostRecentRemainingIOBudget] = (ioBudgetData?.data ?? []).slice(-1)
 
   const { data: addons, isLoading } = useProjectAddonsQuery({ projectRef })
   const selectedAddons = addons?.selected_addons ?? []
@@ -89,6 +105,41 @@ const AddOns = ({}: AddOnsProps) => {
           <div className="col-span-12 lg:col-span-7 space-y-6">
             <div className="py-2 space-y-6">
               {/* Compute add on selection */}
+              {Number(mostRecentRemainingIOBudget?.disk_io_budget) === 0 ? (
+                <Alert
+                  withIcon
+                  variant="warning"
+                  title="Warning: Your remaining disk IO budget has run out for today"
+                >
+                  <p>
+                    Your workload is currently running at the baseline disk IO bandwidth at{' '}
+                    {computeInstanceSpecs?.baseline_disk_io_mbs?.toLocaleString() ?? 87} Mbps and
+                    may suffer degradation in performance.
+                  </p>
+                  <p className="mt-1">
+                    Consider upgrading to a larger compute instance for a higher baseline
+                    throughput.
+                  </p>
+                </Alert>
+              ) : Number(mostRecentRemainingIOBudget?.disk_io_budget) <= 10 ? (
+                <Alert
+                  withIcon
+                  variant="warning"
+                  title="Warning: Your remaining disk IO budget is running out for today"
+                >
+                  <p>
+                    If the disk IO budget drops to zero, your workload will run at the baseline disk
+                    IO bandwidth at{' '}
+                    {computeInstanceSpecs?.baseline_disk_io_mbs?.toLocaleString() ?? 87} Mbps and
+                    may suffer degradation in performance.
+                  </p>
+                  <p className="mt-1">
+                    Consider upgrading to a larger compute instance for a higher baseline
+                    throughput.
+                  </p>
+                </Alert>
+              ) : null}
+
               <div className="flex space-x-6">
                 <div>
                   <div className="rounded-md bg-scale-400 w-[160px] h-[96px] shadow">

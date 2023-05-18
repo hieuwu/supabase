@@ -29,8 +29,12 @@ const SizeAndCounts = ({ projectRef }: SizeAndCountsProps) => {
   const { data: usage } = useProjectUsageQuery({ projectRef })
   const { data: subscription } = useProjectSubscriptionQuery({ projectRef })
   const { current_period_start, current_period_end } = subscription?.billing ?? {}
-  const startDate = new Date((current_period_start ?? 0) * 1000).toISOString()
-  const endDate = new Date((current_period_end ?? 0) * 1000).toISOString()
+  const startDate =
+    current_period_start !== undefined
+      ? new Date(current_period_start * 1000).toISOString()
+      : undefined
+  const endDate =
+    current_period_end !== undefined ? new Date(current_period_end * 1000).toISOString() : undefined
   const categoryMeta = USAGE_CATEGORIES.find((category) => category.key === 'sizeCount')
 
   const upgradeUrl = getUpgradeUrl(projectRef, subscription)
