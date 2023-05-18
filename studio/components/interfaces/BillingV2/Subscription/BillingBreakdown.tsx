@@ -98,61 +98,52 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
                   <div
                     key={metric.key}
                     className={clsx(
-                      'col-span-6 py-4 border-scale-400',
+                      'col-span-6 space-y-4 py-4 border-scale-400',
                       i % 2 === 0 ? 'border-r pr-4' : 'pl-4',
-                      i < BILLING_BREAKDOWN_METRICS.length - 2 && 'border-b',
-                      usageMeta.available_in_plan ? 'flex-col' : 'flex'
+                      i < BILLING_BREAKDOWN_METRICS.length - 2 && 'border-b'
                     )}
                   >
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-scale-1100">{metric.name}</p>
-                        {isExceededLimit ? (
-                          <div className="flex items-center space-x-2 min-w-[115px]">
-                            <IconAlertTriangle size={14} strokeWidth={2} className="text-red-900" />
-                            <p className="text-sm text-red-900">Exceeded limit</p>
-                          </div>
-                        ) : isApproachingLimit ? (
-                          <div className="flex items-center space-x-2 min-w-[115px]">
-                            <IconAlertTriangle
-                              size={14}
-                              strokeWidth={2}
-                              className="text-amber-900"
-                            />
-                            <p className="text-sm text-amber-900">Reaching limit</p>
-                          </div>
-                        ) : null}
-                      </div>
-                      {usageMeta.available_in_plan ? (
-                        <SparkBar
-                          type="horizontal"
-                          max={usageMeta.limit}
-                          value={usageMeta.usage ?? 0}
-                          barClass={
-                            isExceededLimit
-                              ? 'bg-red-900'
-                              : isApproachingLimit
-                              ? 'bg-amber-900'
-                              : 'bg-scale-1100'
-                          }
-                          labelBottom={usageLabel}
-                          labelBottomClass="!text-scale-1000"
-                          labelTop={percentageLabel}
-                          labelTopClass={
-                            isExceededLimit
-                              ? '!text-red-900'
-                              : isApproachingLimit
-                              ? '!text-amber-900'
-                              : ''
-                          }
-                        />
-                      ) : (
-                        // [Joshen] Needs a better CTA here
-                        <p className="text-sm text-scale-1000">Unavailable in your plan</p>
-                      )}
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-scale-1100">{metric.name}</p>
+                      {isExceededLimit ? (
+                        <div className="flex items-center space-x-2 min-w-[115px]">
+                          <IconAlertTriangle size={14} strokeWidth={2} className="text-red-900" />
+                          <p className="text-sm text-red-900">Exceeded limit</p>
+                        </div>
+                      ) : isApproachingLimit ? (
+                        <div className="flex items-center space-x-2 min-w-[115px]">
+                          <IconAlertTriangle size={14} strokeWidth={2} className="text-amber-900" />
+                          <p className="text-sm text-amber-900">Reaching limit</p>
+                        </div>
+                      ) : null}
                     </div>
-                    {!usageMeta.available_in_plan && (
-                      <div className="flex items-center justify-end flex-grow">
+                    {usageMeta.available_in_plan ? (
+                      <SparkBar
+                        type="horizontal"
+                        max={usageMeta.limit}
+                        value={usageMeta.usage ?? 0}
+                        barClass={
+                          isExceededLimit
+                            ? 'bg-red-900'
+                            : isApproachingLimit
+                            ? 'bg-amber-900'
+                            : 'bg-scale-1100'
+                        }
+                        labelBottom={usageLabel}
+                        labelBottomClass="!text-scale-1000"
+                        labelTop={percentageLabel}
+                        labelTopClass={
+                          isExceededLimit
+                            ? '!text-red-900'
+                            : isApproachingLimit
+                            ? '!text-amber-900'
+                            : ''
+                        }
+                      />
+                    ) : (
+                      // [Joshen] Needs a better CTA here
+                      <div className="flex items-center justify-between flex-grow">
+                        <p className="text-sm text-scale-1000">Unavailable in your plan</p>
                         <Button onClick={() => snap.setPanelKey('subscriptionPlan')}>
                           Upgrade
                         </Button>
