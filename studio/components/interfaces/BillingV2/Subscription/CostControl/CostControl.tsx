@@ -9,6 +9,11 @@ import SpendCapSidePanel from './SpendCapSidePanel'
 
 export interface CostControlProps {}
 
+const PLAN_NAME: any = {
+  tier_team: 'Team',
+  tier_enterprise: 'Enterprise',
+}
+
 const CostControl = ({}: CostControlProps) => {
   const { ref: projectRef } = useParams()
 
@@ -40,22 +45,24 @@ const CostControl = ({}: CostControlProps) => {
           </div>
         ) : (
           <div className="col-span-12 lg:col-span-7 space-y-6">
-            <p className="text-sm text-scale-1000">
-              You can control whether your project is charged for additional usage beyond the
-              included quota of your subscription plan. If you need to go beyond the included quota,
-              simply switch off your spend cap to pay for additional usage.
-            </p>
-
-            {currentTier === PRICING_TIER_PRODUCT_IDS.TEAM && (
+            {[PRICING_TIER_PRODUCT_IDS.TEAM, PRICING_TIER_PRODUCT_IDS.ENTERPRISE].includes(
+              currentTier
+            ) ? (
               <Alert
                 withIcon
                 variant="info"
-                title="You will be charged for any additional usage on the Team plan"
+                title={`You will be charged for any additional usage on the ${PLAN_NAME[currentTier]} plan`}
               >
-                Team plan requires you to have spend cap off at all times. Your project will never
-                become unresponsive or be paused. Only when your included usage is exceeded will you
-                be charged for any additional usage
+                {PLAN_NAME[currentTier]} plan requires you to have spend cap off at all times. Your
+                project will never become unresponsive or be paused. Only when your included usage
+                is exceeded will you be charged for any additional usage
               </Alert>
+            ) : (
+              <p className="text-sm text-scale-1000">
+                You can control whether your project is charged for additional usage beyond the
+                included quota of your subscription plan. If you need to go beyond the included
+                quota, simply switch off your spend cap to pay for additional usage.
+              </p>
             )}
 
             <div className="flex space-x-6">

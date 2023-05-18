@@ -67,8 +67,7 @@ export const SUBSCRIPTION_PLANS: PricingInformation[] = [
       '14 day daily backups',
       '28 day log retention',
     ],
-    footer:
-      'Your cost control settings determine if you wish to pay for anything more than the above.',
+    footer: undefined,
   },
   {
     id: 'tier_enterprise',
