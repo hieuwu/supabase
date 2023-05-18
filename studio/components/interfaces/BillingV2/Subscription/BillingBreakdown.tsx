@@ -10,11 +10,11 @@ import {
   useProjectUsageQuery,
 } from 'data/usage/project-usage-query'
 import dayjs from 'dayjs'
-import { USAGE_APPROACHING_THRESHOLD } from 'lib/constants'
+import { PRICING_TIER_PRODUCT_IDS, USAGE_APPROACHING_THRESHOLD } from 'lib/constants'
 import { formatBytes } from 'lib/helpers'
 import { partition } from 'lodash'
 import { useState } from 'react'
-import { Button, Collapsible, IconAlertTriangle, IconChevronRight } from 'ui'
+import { Alert, Button, Collapsible, IconAlertTriangle, IconChevronRight } from 'ui'
 import { BILLING_BREAKDOWN_METRICS } from './Subscription.constants'
 import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 import Link from 'next/link'
@@ -35,9 +35,19 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
   const billingCycleStart = dayjs.unix(subscription?.current_period_start ?? 0).utc()
   const billingCycleEnd = dayjs.unix(subscription?.current_period_end ?? 0).utc()
 
+  const currentTier = subscription?.tier.supabase_prod_id
   const isUsageBillingEnabled = subscription?.usage_billing_enabled
   const [usageFees, fixedFees] = partition(upcomingInvoice?.lines ?? [], (item) => item.usage_based)
   const totalUsageFees = usageFees.reduce((a, b) => a + b.amount, 0)
+
+  const hasExceededAnyLimits =
+    !isUsageBillingEnabled &&
+    Object.values(usage ?? {})
+      .map((metric) => {
+        if (typeof metric !== 'object') return false
+        if (metric.usage > metric.limit) return true
+      })
+      .includes(true)
 
   return (
     <div className="grid grid-cols-12 gap-6">
@@ -65,6 +75,36 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
             Organization owners are notified each time your project approaches or exceeds the
             included usage. Learn more
           </p>
+
+          {hasExceededAnyLimits && (
+            <Alert
+              withIcon
+              variant="danger"
+              title="Your project's usage has exceeded its included quota"
+              actions={[
+                <Button
+                  type="default"
+                  className="ml-4"
+                  onClick={() =>
+                    snap.setPanelKey(
+                      currentTier === PRICING_TIER_PRODUCT_IDS.FREE
+                        ? 'subscriptionPlan'
+                        : 'costControl'
+                    )
+                  }
+                >
+                  {currentTier === PRICING_TIER_PRODUCT_IDS.FREE
+                    ? 'Upgrade plan'
+                    : 'Change spend cap'}
+                </Button>,
+              ]}
+            >
+              Your project can become unresponsive, enter read only mode, or be paused.{' '}
+              {currentTier === PRICING_TIER_PRODUCT_IDS.FREE
+                ? 'Please upgrade to the Pro plan to ensure that your project remains available.'
+                : 'Please disable spend caps to ensure that your project remains available.'}
+            </Alert>
+          )}
 
           {isLoadingUsage ? (
             <div className="col-span-7 space-y-2">
