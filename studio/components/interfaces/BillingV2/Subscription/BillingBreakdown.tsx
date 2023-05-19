@@ -210,7 +210,7 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
                       // [Joshen] Needs a better CTA here
                       <div className="flex items-center justify-between flex-grow">
                         <p className="text-sm text-scale-1000">Unavailable in your plan</p>
-                        <Button onClick={() => snap.setPanelKey('subscriptionPlan')}>
+                        <Button type="default" onClick={() => snap.setPanelKey('subscriptionPlan')}>
                           Upgrade
                         </Button>
                       </div>

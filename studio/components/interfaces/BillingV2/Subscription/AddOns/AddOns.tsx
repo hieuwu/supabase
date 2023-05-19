@@ -105,41 +105,6 @@ const AddOns = ({}: AddOnsProps) => {
           <div className="col-span-12 lg:col-span-7 space-y-6">
             <div className="py-2 space-y-6">
               {/* Compute add on selection */}
-              {Number(mostRecentRemainingIOBudget?.disk_io_budget) === 0 ? (
-                <Alert
-                  withIcon
-                  variant="warning"
-                  title="Warning: Your remaining disk IO budget has run out for today"
-                >
-                  <p>
-                    Your workload is currently running at the baseline disk IO bandwidth at{' '}
-                    {computeInstanceSpecs?.baseline_disk_io_mbs?.toLocaleString() ?? 87} Mbps and
-                    may suffer degradation in performance.
-                  </p>
-                  <p className="mt-1">
-                    Consider upgrading to a larger compute instance for a higher baseline
-                    throughput.
-                  </p>
-                </Alert>
-              ) : Number(mostRecentRemainingIOBudget?.disk_io_budget) <= 10 ? (
-                <Alert
-                  withIcon
-                  variant="warning"
-                  title="Warning: Your remaining disk IO budget is running out for today"
-                >
-                  <p>
-                    If the disk IO budget drops to zero, your workload will run at the baseline disk
-                    IO bandwidth at{' '}
-                    {computeInstanceSpecs?.baseline_disk_io_mbs?.toLocaleString() ?? 87} Mbps and
-                    may suffer degradation in performance.
-                  </p>
-                  <p className="mt-1">
-                    Consider upgrading to a larger compute instance for a higher baseline
-                    throughput.
-                  </p>
-                </Alert>
-              ) : null}
-
               <div className="flex space-x-6">
                 <div>
                   <div className="rounded-md bg-scale-400 w-[160px] h-[96px] shadow">
@@ -164,6 +129,44 @@ const AddOns = ({}: AddOnsProps) => {
                   >
                     Change optimized compute
                   </Button>
+
+                  {Number(mostRecentRemainingIOBudget?.disk_io_budget) === 0 ? (
+                    <Alert
+                      withIcon
+                      className="mt-4"
+                      variant="danger"
+                      title="Your disk IO budget has run out for today"
+                    >
+                      <p>
+                        Your workload is currently running at the baseline disk IO bandwidth at{' '}
+                        {computeInstanceSpecs?.baseline_disk_io_mbs?.toLocaleString() ?? 87} Mbps
+                        and may suffer degradation in performance.
+                      </p>
+                      <p className="mt-1">
+                        Consider upgrading to a larger compute instance for a higher baseline
+                        throughput.
+                      </p>
+                    </Alert>
+                  ) : Number(mostRecentRemainingIOBudget?.disk_io_budget) <= 10 ? (
+                    <Alert
+                      withIcon
+                      className="mt-4"
+                      variant="warning"
+                      title="Your disk IO budget is running out for today"
+                    >
+                      <p>
+                        If the disk IO budget drops to zero, your workload will run at the baseline
+                        disk IO bandwidth at{' '}
+                        {computeInstanceSpecs?.baseline_disk_io_mbs?.toLocaleString() ?? 87} Mbps
+                        and may suffer degradation in performance.
+                      </p>
+                      <p className="mt-1">
+                        Consider upgrading to a larger compute instance for a higher baseline
+                        throughput.
+                      </p>
+                    </Alert>
+                  ) : null}
+
                   <div className="mt-2 w-full flex items-center justify-between border-b py-2">
                     <p className="text-sm text-scale-1000">Memory</p>
                     <p className="text-sm">{computeInstanceSpecs?.memory_gb ?? 1} GB</p>

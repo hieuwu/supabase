@@ -233,8 +233,8 @@ const ComputeInstanceSidePanel = () => {
 
             {selectedCategory === 'micro' && (
               <p className="text-sm text-scale-1100">
-                Your database will use the standard Micro size instance of 1-core ARM CPU (Shared)
-                with 500MB of memory.
+                Your database will use the standard Micro size instance of 2-core ARM CPU (Shared)
+                with 1GB of memory.
               </p>
             )}
 
