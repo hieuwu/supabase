@@ -308,10 +308,12 @@ const TierUpdateSidePanel = () => {
           // await refetchPaymentMethods()
         }}
         onChallengeOpen={() => {
+          snap.setPanelKey(undefined)
           snap.setShowUpgradeConfirmation(false)
           snap.setShowAddNewPaymentMethodModal(false)
         }}
         onChallengeClose={() => {
+          snap.setPanelKey('subscriptionPlan')
           snap.setShowUpgradeConfirmation(true)
           snap.setShowAddNewPaymentMethodModal(true)
         }}

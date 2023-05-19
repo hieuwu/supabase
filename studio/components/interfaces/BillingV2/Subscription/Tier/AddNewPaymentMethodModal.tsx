@@ -136,7 +136,7 @@ const AddNewPaymentMethodModal = ({
       <Modal
         hideFooter
         size="medium"
-        visible={visible}
+        visible={visible && intent !== undefined}
         header="Add new payment method"
         onCancel={() => onLocalCancel()}
         className="PAYMENT"
