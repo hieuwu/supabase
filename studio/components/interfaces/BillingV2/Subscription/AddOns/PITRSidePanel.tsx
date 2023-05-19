@@ -1,16 +1,15 @@
-import Image from 'next/image'
 import clsx from 'clsx'
 import { useParams } from 'common'
 import { useProjectAddonRemoveMutation } from 'data/subscriptions/project-addon-remove-mutation'
 import { useProjectAddonUpdateMutation } from 'data/subscriptions/project-addon-update-mutation'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
+import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import { useStore } from 'hooks'
 import { BASE_PATH, PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Alert, Button, IconExternalLink, Radio, SidePanel } from 'ui'
 import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
-import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
+import { Alert, Button, IconExternalLink, Radio, SidePanel } from 'ui'
 
 const PITR_CATEGORY_OPTIONS: { id: 'off' | 'on'; name: string; imageUrl: string }[] = [
   { id: 'off', name: 'No point in time recovery', imageUrl: `${BASE_PATH}/img/pitr-off.svg` },
@@ -95,6 +94,7 @@ const PITRSidePanel = () => {
       onConfirm={onConfirm}
       loading={isLoading || isSubmitting}
       disabled={isFreePlan || isLoading || !hasChanges || isSubmitting}
+      tooltip={isFreePlan ? 'Unable to enable point in time recovery on a free plan' : undefined}
       header={
         <div className="flex items-center justify-between">
           <h4>Point in Time Recovery</h4>
@@ -116,29 +116,6 @@ const PITRSidePanel = () => {
             in granularity.
           </p>
 
-          {isFreePlan ? (
-            <Alert
-              withIcon
-              variant="info"
-              title="Changing your compute size is only available on the Pro plan"
-              actions={
-                <Button type="default" onClick={() => snap.setPanelKey('subscriptionPlan')}>
-                  View available plans
-                </Button>
-              }
-            >
-              Upgrade your project's plan to change the compute size of your project
-            </Alert>
-          ) : subscriptionCompute === undefined ? (
-            <Alert
-              withIcon
-              variant="warning"
-              title="Your project is required to minimally be on a Small Add-on to enable PITR"
-            >
-              This is to ensure that your project has enough resources to execute PITR successfully
-            </Alert>
-          ) : null}
-
           <div className="!mt-8 pb-4">
             <div className="grid grid-cols-12 gap-3">
               {PITR_CATEGORY_OPTIONS.map((option) => {
@@ -154,12 +131,10 @@ const PITRSidePanel = () => {
                   >
                     <div
                       className={clsx(
-                        'relative rounded-xl transition border bg-no-repeat bg-center bg-cover',
-                        isSelected ? 'border-brand-900' : 'border-scale-900 opacity-50',
-                        !isFreePlan && 'cursor-pointer',
-                        !isFreePlan &&
-                          !isSelected &&
-                          'group-hover:border-scale-1100 group-hover:opacity-100'
+                        'relative rounded-xl transition border bg-no-repeat bg-center bg-cover cursor-pointer',
+                        isSelected
+                          ? 'border-brand-900'
+                          : 'border-scale-900 opacity-50 group-hover:border-scale-1100 group-hover:opacity-100'
                       )}
                       style={{
                         aspectRatio: ' 160/96',
@@ -182,6 +157,31 @@ const PITRSidePanel = () => {
 
           {selectedCategory === 'on' && (
             <div className="!mt-8 pb-4">
+              {isFreePlan ? (
+                <Alert
+                  withIcon
+                  variant="info"
+                  className="mb-4"
+                  title="Changing your compute size is only available on the Pro plan"
+                  actions={
+                    <Button type="default" onClick={() => snap.setPanelKey('subscriptionPlan')}>
+                      View available plans
+                    </Button>
+                  }
+                >
+                  Upgrade your project's plan to change the compute size of your project
+                </Alert>
+              ) : subscriptionCompute === undefined ? (
+                <Alert
+                  withIcon
+                  variant="warning"
+                  title="Your project is required to minimally be on a Small Add-on to enable PITR"
+                >
+                  This is to ensure that your project has enough resources to execute PITR
+                  successfully
+                </Alert>
+              ) : null}
+
               <Radio.Group
                 type="large-cards"
                 size="tiny"

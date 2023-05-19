@@ -6,7 +6,6 @@ import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
 import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import { useStore } from 'hooks'
 import { BASE_PATH, PRICING_TIER_PRODUCT_IDS, PROJECT_STATUS } from 'lib/constants'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
@@ -104,6 +103,7 @@ const ComputeInstanceSidePanel = () => {
         onConfirm={() => setShowConfirmationModal(true)}
         loading={isLoading}
         disabled={isFreePlan || isLoading || !hasChanges}
+        tooltip={isFreePlan ? 'Unable to update compute instance on a free plan' : undefined}
         header={
           <div className="flex items-center justify-between">
             <h4>Change project compute size</h4>
@@ -124,29 +124,14 @@ const ComputeInstanceSidePanel = () => {
               database instance.
             </p>
 
-            {isFreePlan ? (
-              <Alert
-                withIcon
-                variant="info"
-                title="Changing your compute size is only available on the Pro plan"
-                actions={
-                  <Button type="default" onClick={() => snap.setPanelKey('subscriptionPlan')}>
-                    View available plans
-                  </Button>
-                }
-              >
-                Upgrade your project's plan to change the compute size of your project
-              </Alert>
-            ) : (
-              <Alert
-                withIcon
-                variant="info"
-                title="Your project will need to be restarted when changing it's compute size"
-              >
-                It will take up to 2 minutes for changes to take place, in which your project will
-                be unavailable during that time.
-              </Alert>
-            )}
+            <Alert
+              withIcon
+              variant="info"
+              title="Your project will need to be restarted when changing it's compute size"
+            >
+              It will take up to 2 minutes for changes to take place, in which your project will be
+              unavailable during that time.
+            </Alert>
 
             <div className="!mt-8 pb-4">
               <div className="grid grid-cols-12 gap-3">
@@ -157,19 +142,16 @@ const ComputeInstanceSidePanel = () => {
                       key={option.id}
                       className={clsx('col-span-3 group space-y-1', isFreePlan && 'opacity-75')}
                       onClick={() => {
-                        if (isFreePlan) return
                         setSelectedCategory(option.id)
                         if (option.id === 'micro') setSelectedOption('ci_micro')
                       }}
                     >
                       <div
                         className={clsx(
-                          'relative rounded-xl transition border bg-no-repeat bg-center bg-cover',
-                          isSelected ? 'border-brand-900' : 'border-scale-900 opacity-50',
-                          !isFreePlan && 'cursor-pointer',
-                          !isFreePlan &&
-                            !isSelected &&
-                            'group-hover:border-scale-1100 group-hover:opacity-100'
+                          'relative rounded-xl transition border bg-no-repeat bg-center bg-cover cursor-pointer',
+                          isSelected
+                            ? 'border-brand-900'
+                            : 'border-scale-900 opacity-50 group-hover:border-scale-1100 group-hover:opacity-100'
                         )}
                         style={{
                           aspectRatio: ' 160/96',
@@ -192,6 +174,21 @@ const ComputeInstanceSidePanel = () => {
 
             {selectedCategory === 'optimized' && (
               <div className="pb-4">
+                {isFreePlan && (
+                  <Alert
+                    withIcon
+                    className="mb-4"
+                    variant="info"
+                    title="Changing your compute size is only available on the Pro plan"
+                    actions={
+                      <Button type="default" onClick={() => snap.setPanelKey('subscriptionPlan')}>
+                        View available plans
+                      </Button>
+                    }
+                  >
+                    Upgrade your project's plan to change the compute size of your project
+                  </Alert>
+                )}
                 <Radio.Group
                   type="large-cards"
                   size="tiny"
@@ -202,6 +199,7 @@ const ComputeInstanceSidePanel = () => {
                   {availableOptions.map((option) => (
                     <Radio
                       className="col-span-3 !p-0"
+                      disabled={isFreePlan}
                       name="compute-instance"
                       key={option.identifier}
                       checked={selectedOption === option.identifier}

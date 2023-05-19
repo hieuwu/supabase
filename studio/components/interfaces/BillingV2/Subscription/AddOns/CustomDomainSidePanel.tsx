@@ -87,6 +87,7 @@ const CustomDomainSidePanel = () => {
       onConfirm={onConfirm}
       loading={isLoading || isSubmitting}
       disabled={isFreePlan || isLoading || !hasChanges || isSubmitting}
+      tooltip={isFreePlan ? 'Unable to enable custom domain on a free plan' : undefined}
       header={
         <div className="flex items-center justify-between">
           <h4>Custom domains</h4>

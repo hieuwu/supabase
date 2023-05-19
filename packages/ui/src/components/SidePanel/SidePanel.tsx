@@ -2,6 +2,7 @@ import React from 'react'
 import { Button } from '../../../index'
 import * as Dialog from '@radix-ui/react-dialog'
 import styleHandler from '../../lib/theme/styleHandler'
+import * as Tooltip from '@radix-ui/react-tooltip'
 
 export type SidePanelProps = RadixProps & CustomProps
 
@@ -33,6 +34,7 @@ interface CustomProps {
   onConfirm?: () => void
   confirmText?: String
   triggerElement?: React.ReactNode
+  tooltip?: string
 }
 
 const SidePanel = ({
@@ -54,6 +56,7 @@ const SidePanel = ({
   cancelText = 'Cancel',
   triggerElement,
   defaultOpen,
+  tooltip,
   ...props
 }: SidePanelProps) => {
   const __styles = styleHandler('sidepanel')
@@ -66,17 +69,40 @@ const SidePanel = ({
     customFooter
   ) : (
     <div className={__styles.footer}>
-      <Button disabled={loading} type="default" onClick={() => (onCancel ? onCancel() : null)}>
-        {cancelText}
-      </Button>
-      <Button
-        htmlType="submit"
-        disabled={disabled || loading}
-        loading={loading}
-        onClick={() => (onConfirm ? onConfirm() : null)}
-      >
-        {confirmText}
-      </Button>
+      <div>
+        <Button disabled={loading} type="default" onClick={() => (onCancel ? onCancel() : null)}>
+          {cancelText}
+        </Button>
+      </div>
+      <Tooltip.Root delayDuration={0}>
+        <Tooltip.Trigger asChild>
+          <div>
+            <Button
+              htmlType="submit"
+              disabled={disabled || loading}
+              loading={loading}
+              onClick={() => (onConfirm ? onConfirm() : null)}
+            >
+              {confirmText}
+            </Button>
+          </div>
+        </Tooltip.Trigger>
+        {tooltip !== undefined && (
+          <Tooltip.Portal>
+            <Tooltip.Content side="bottom">
+              <Tooltip.Arrow className="radix-tooltip-arrow" />
+              <div
+                className={[
+                  'rounded bg-scale-100 py-1 px-2 leading-none shadow',
+                  'border border-scale-200',
+                ].join(' ')}
+              >
+                <span className="text-xs text-scale-1200">{tooltip}</span>
+              </div>
+            </Tooltip.Content>
+          </Tooltip.Portal>
+        )}
+      </Tooltip.Root>
     </div>
   )
 
