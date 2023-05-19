@@ -10,17 +10,17 @@ export type SUBSCRIPTION_PANEL_KEYS =
 
 export const subscriptionPageState = proxy({
   panelKey: undefined as SUBSCRIPTION_PANEL_KEYS,
-  showUpgradeConfirmation: false as boolean,
-  showAddNewPaymentMethodModal: false as boolean,
+  // showUpgradeConfirmation: false as boolean,
+  // showAddNewPaymentMethodModal: false as boolean,
   setPanelKey: (key: SUBSCRIPTION_PANEL_KEYS) => {
     subscriptionPageState.panelKey = key
   },
-  setShowUpgradeConfirmation: (value: boolean) => {
-    subscriptionPageState.showUpgradeConfirmation = value
-  },
-  setShowAddNewPaymentMethodModal: (value: boolean) => {
-    subscriptionPageState.showAddNewPaymentMethodModal = value
-  },
+  // setShowUpgradeConfirmation: (value: boolean) => {
+  //   subscriptionPageState.showUpgradeConfirmation = value
+  // },
+  // setShowAddNewPaymentMethodModal: (value: boolean) => {
+  //   subscriptionPageState.showAddNewPaymentMethodModal = value
+  // },
 })
 
 export const getSubscriptionPageStateSnapshot = () => snapshot(subscriptionPageState)

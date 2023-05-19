@@ -185,10 +185,7 @@ const TierUpdateSidePanel = () => {
                         type={isDowngradeOption ? 'default' : 'primary'}
                         loading={isLoading}
                         disabled={isLoading}
-                        onClick={() => {
-                          setSelectedTier(plan.id as any)
-                          if (!isDowngradeOption) snap.setShowUpgradeConfirmation(true)
-                        }}
+                        onClick={() => setSelectedTier(plan.id as any)}
                       >
                         {isDowngradeOption ? 'Downgrade' : 'Upgrade'} to {plan.name}
                       </Button>
@@ -268,13 +265,8 @@ const TierUpdateSidePanel = () => {
         loading={isSubmitting}
         alignFooter="right"
         className="!w-[450px]"
-        visible={
-          snap.showUpgradeConfirmation && selectedTier !== undefined && selectedTier !== 'tier_free'
-        }
-        onCancel={() => {
-          snap.setShowUpgradeConfirmation(false)
-          setSelectedTier(undefined)
-        }}
+        visible={selectedTier !== undefined && selectedTier !== 'tier_free'}
+        onCancel={() => setSelectedTier(undefined)}
         onConfirm={onUpdateSubscription}
         header={`Confirm to upgrade to ${selectedTierMeta?.name}`}
       >
@@ -295,7 +287,7 @@ const TierUpdateSidePanel = () => {
         </Modal.Content>
       </Modal>
 
-      <AddNewPaymentMethodModal
+      {/* <AddNewPaymentMethodModal
         visible={snap.showAddNewPaymentMethodModal}
         returnUrl={`${getURL()}/project/${projectRef}/settings/billing/update/pro`}
         onCancel={() => snap.setShowAddNewPaymentMethodModal(false)}
@@ -307,17 +299,17 @@ const TierUpdateSidePanel = () => {
           })
           // await refetchPaymentMethods()
         }}
-        onChallengeOpen={() => {
-          snap.setPanelKey(undefined)
-          snap.setShowUpgradeConfirmation(false)
-          snap.setShowAddNewPaymentMethodModal(false)
-        }}
-        onChallengeClose={() => {
-          snap.setPanelKey('subscriptionPlan')
-          snap.setShowUpgradeConfirmation(true)
-          snap.setShowAddNewPaymentMethodModal(true)
-        }}
-      />
+        // onChallengeOpen={() => {
+        //   snap.setPanelKey(undefined)
+        //   snap.setShowUpgradeConfirmation(false)
+        //   snap.setShowAddNewPaymentMethodModal(false)
+        // }}
+        // onChallengeClose={() => {
+        //   snap.setPanelKey('subscriptionPlan')
+        //   snap.setShowUpgradeConfirmation(true)
+        //   snap.setShowAddNewPaymentMethodModal(true)
+        // }}
+      /> */}
 
       <MembersExceedLimitModal
         visible={showDowngradeError}

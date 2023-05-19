@@ -8,6 +8,7 @@ import { getURL } from 'lib/helpers'
 import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 import { Button, IconAlertCircle, IconCreditCard, IconLoader, IconPlus, Listbox } from 'ui'
 import AddNewPaymentMethodModal from './AddNewPaymentMethodModal'
+import { useState } from 'react'
 
 // [Joshen] This could potentially be shifted to components/ui as it could be shared between this page and org page
 // likewise for AddNewPaymentMethodModal.tsx and AddNewPaymentMethodForm.tsx (these 2 are tightly coupled)
@@ -26,7 +27,7 @@ const PaymentMethodSelection = ({
   const { ui } = useStore()
   const { ref: projectRef } = useParams()
   const snap = useSubscriptionPageStateSnapshot()
-  // const [showAddNewPaymentMethodModal, setShowAddNewPaymentMethodModal] = useState(false)
+  const [showAddNewPaymentMethodModal, setShowAddNewPaymentMethodModal] = useState(false)
   const slug = ui.selectedOrganization?.slug
 
   const {
@@ -63,7 +64,7 @@ const PaymentMethodSelection = ({
                   type="default"
                   disabled={!canUpdatePaymentMethods}
                   icon={<IconCreditCard />}
-                  onClick={() => snap.setShowAddNewPaymentMethodModal(true)}
+                  onClick={() => setShowAddNewPaymentMethodModal(true)}
                 >
                   Add new
                 </Button>
@@ -114,7 +115,7 @@ const PaymentMethodSelection = ({
             })}
             <div
               className="flex items-center px-3 py-2 space-x-2 transition cursor-pointer group hover:bg-scale-500"
-              onClick={() => snap.setShowAddNewPaymentMethodModal(true)}
+              onClick={() => setShowAddNewPaymentMethodModal(true)}
             >
               <IconPlus size={16} />
               <p className="transition text-scale-1000 group-hover:text-scale-1200">
@@ -125,25 +126,25 @@ const PaymentMethodSelection = ({
         )}
       </div>
 
-      {/* <AddNewPaymentMethodModal
-        visible={snap.showAddNewPaymentMethodModal}
+      <AddNewPaymentMethodModal
+        visible={showAddNewPaymentMethodModal}
         returnUrl={`${getURL()}/project/${projectRef}/settings/billing/update/pro`}
-        onCancel={() => snap.setShowAddNewPaymentMethodModal(false)}
+        onCancel={() => setShowAddNewPaymentMethodModal(false)}
         onConfirm={async () => {
-          snap.setShowAddNewPaymentMethodModal(false)
+          setShowAddNewPaymentMethodModal(false)
           ui.setNotification({
             category: 'success',
             message: 'Successfully added new payment method',
           })
           await refetchPaymentMethods()
         }}
-        onChallengeOpen={() => {
-          snap.setShowAddNewPaymentMethodModal(false)
-        }}
-        onChallengeClose={() => {
-          snap.setShowAddNewPaymentMethodModal(true)
-        }}
-      /> */}
+        // onChallengeOpen={() => {
+        //   snap.setShowAddNewPaymentMethodModal(false)
+        // }}
+        // onChallengeClose={() => {
+        //   snap.setShowAddNewPaymentMethodModal(true)
+        // }}
+      />
     </>
   )
 }
