@@ -111,10 +111,11 @@ const AddNewPaymentMethodModal = ({
         ref={captchaRefCallback}
         sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY!}
         size="invisible"
+        onOpen={() => console.log('onOpen')}
+        onClose={onLocalCancel}
         onVerify={(token) => {
           setCaptchaToken(token)
         }}
-        onClose={onLocalCancel}
         onExpire={() => {
           setCaptchaToken(null)
         }}
@@ -123,7 +124,7 @@ const AddNewPaymentMethodModal = ({
       <Modal
         hideFooter
         size="medium"
-        visible={visible && intent !== undefined}
+        visible={visible}
         header="Add new payment method"
         onCancel={(event: any) => {
           console.log({ event })
