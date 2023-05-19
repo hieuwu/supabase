@@ -95,6 +95,7 @@ const AddNewPaymentMethodModal = ({
 
   const onLocalCancel = () => {
     setIntent(undefined)
+    snap.setIsCaptchaChallengeOpen(false)
     return onCancel()
   }
 
@@ -115,9 +116,13 @@ const AddNewPaymentMethodModal = ({
           console.log('onOpen')
           snap.setIsCaptchaChallengeOpen(true)
         }}
-        onClose={onLocalCancel}
+        onClose={() => {
+          console.log('onClose')
+          onLocalCancel()
+        }}
         onVerify={(token) => {
           setCaptchaToken(token)
+          snap.setIsCaptchaChallengeOpen(false)
         }}
         onExpire={() => {
           setCaptchaToken(null)
@@ -130,6 +135,7 @@ const AddNewPaymentMethodModal = ({
         visible={visible}
         header="Add new payment method"
         onCancel={() => {
+          console.log('onCancel', { open: snap.isCaptchaChallengeOpen })
           if (!snap.isCaptchaChallengeOpen) onLocalCancel()
         }}
         className="PAYMENT"
