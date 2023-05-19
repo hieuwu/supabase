@@ -1,24 +1,22 @@
 import clsx from 'clsx'
 import { useParams } from 'common'
+import ShimmeringLoader from 'components/ui/ShimmeringLoader'
+import { useFreeProjectLimitCheckQuery } from 'data/organizations/free-project-limit-check-query'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
+import { useProjectPlansQuery } from 'data/subscriptions/project-plans-query'
 import { useProjectSubscriptionUpdateMutation } from 'data/subscriptions/project-subscription-update-mutation'
 import { useProjectSubscriptionV2Query } from 'data/subscriptions/project-subscription-v2-query'
 import { useFlag, useStore } from 'hooks'
 import { PRICING_TIER_PRODUCT_IDS } from 'lib/constants'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 import { Alert, Button, IconCheck, IconExternalLink, Modal, SidePanel } from 'ui'
 import EnterpriseCard from './EnterpriseCard'
-import { SUBSCRIPTION_PLANS } from './Tier.constants'
-import PaymentMethodSelection from './PaymentMethodSelection'
-import { useFreeProjectLimitCheckQuery } from 'data/organizations/free-project-limit-check-query'
-import MembersExceedLimitModal from './MembersExceedLimitModal'
 import ExitSurveyModal from './ExitSurveyModal'
-import { useProjectPlansQuery } from 'data/subscriptions/project-plans-query'
-import ShimmeringLoader from 'components/ui/ShimmeringLoader'
-import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
-import Link from 'next/link'
-import AddNewPaymentMethodModal from './AddNewPaymentMethodModal'
-import { getURL } from 'lib/helpers'
+import MembersExceedLimitModal from './MembersExceedLimitModal'
+import PaymentMethodSelection from './PaymentMethodSelection'
+import { SUBSCRIPTION_PLANS } from './Tier.constants'
 
 const TierUpdateSidePanel = () => {
   const { ui } = useStore()
@@ -27,6 +25,7 @@ const TierUpdateSidePanel = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showExitSurvey, setShowExitSurvey] = useState(false)
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>()
   const [showDowngradeError, setShowDowngradeError] = useState(false)
   const [selectedTier, setSelectedTier] = useState<'tier_free' | 'tier_pro' | 'tier_team'>()
 
@@ -69,10 +68,17 @@ const TierUpdateSidePanel = () => {
   const onUpdateSubscription = async () => {
     if (!projectRef) return console.error('Project ref is required')
     if (!selectedTier) return console.error('Selected tier is required')
+    if (!selectedPaymentMethod) {
+      return ui.setNotification({ category: 'error', message: 'Please select a payment method' })
+    }
 
     try {
       setIsSubmitting(true)
-      await updateSubscriptionTier({ projectRef, tier: selectedTier })
+      await updateSubscriptionTier({
+        projectRef,
+        tier: selectedTier,
+        paymentMethod: selectedPaymentMethod,
+      })
       ui.setNotification({
         category: 'success',
         message: `Successfully updated subscription to ${selectedTierMeta?.name}!`,
@@ -282,7 +288,10 @@ const TierUpdateSidePanel = () => {
               plan.
             </p>
             <div className="!mt-6">
-              <PaymentMethodSelection selectedPaymentMethod="" onSelectPaymentMethod={() => {}} />
+              <PaymentMethodSelection
+                selectedPaymentMethod={selectedPaymentMethod}
+                onSelectPaymentMethod={setSelectedPaymentMethod}
+              />
             </div>
           </div>
         </Modal.Content>

@@ -5,6 +5,7 @@ import { subscriptionKeys } from './keys'
 
 export type ProjectSubscriptionUpdateVariables = {
   projectRef: string
+  paymentMethod?: string
   tier: 'tier_free' | 'tier_pro' | 'tier_payg' | 'tier_team'
 }
 
@@ -15,13 +16,18 @@ export type ProjectSubscriptionUpdateResponse = {
 export async function updateSubscriptionTier({
   projectRef,
   tier,
+  paymentMethod,
 }: ProjectSubscriptionUpdateVariables) {
   if (!projectRef) throw new Error('projectRef is required')
   if (!tier) throw new Error('tier is required')
 
-  const response = (await put(`${API_URL}/projects/${projectRef}/billing/subscription`, {
-    tier,
-  })) as ProjectSubscriptionUpdateResponse
+  const payload: { tier: string; payment_method?: string } = { tier }
+  if (paymentMethod !== undefined) payload.payment_method = paymentMethod
+
+  const response = (await put(
+    `${API_URL}/projects/${projectRef}/billing/subscription`,
+    payload
+  )) as ProjectSubscriptionUpdateResponse
   if (response.error) throw response.error
 
   return response

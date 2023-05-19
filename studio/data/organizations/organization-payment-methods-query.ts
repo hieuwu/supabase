@@ -2,11 +2,34 @@ import { useQuery, useQueryClient, UseQueryOptions } from '@tanstack/react-query
 import { get } from 'lib/common/fetch'
 import { API_URL } from 'lib/constants'
 import { useCallback } from 'react'
-import { Organization } from 'types'
 import { organizationKeys } from './keys'
 
 export type OrganizationPaymentMethodsVariables = { slug?: string }
-export type OrganizationPaymentMethodsResponse = {}[]
+export type OrganizationPaymentMethodsResponse = {
+  id: string
+  customer: string
+  type: string
+  object: string
+  metadata: any
+  livemode: boolean
+  created: number
+  card: {
+    brand: string
+    country: string
+    exp_month: number
+    exp_year: number
+    fingerprint: string
+    last4: string
+    funding: string
+    // [Joshen] There's more but just putting what's relevant
+  }
+  billing_details: {
+    address: any
+    email: string | null
+    name: string | null
+    phone: string | null
+  }
+}[]
 
 export async function getOrganizations(
   { slug }: OrganizationPaymentMethodsVariables,

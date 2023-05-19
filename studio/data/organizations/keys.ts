@@ -5,4 +5,6 @@ export const organizationKeys = {
   roles: (slug: string | undefined) => ['organizations', slug, 'roles'] as const,
   freeProjectLimitCheck: (slug: string | undefined) =>
     ['organizations', slug, 'free-project-limit-check'] as const,
+  customerProfile: (slug: string | undefined) =>
+    ['organizations', slug, 'customer-profile'] as const,
 }

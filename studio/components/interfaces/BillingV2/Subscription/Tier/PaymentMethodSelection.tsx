@@ -1,22 +1,17 @@
 import * as Tooltip from '@radix-ui/react-tooltip'
 import { PermissionAction } from '@supabase/shared-types/out/constants'
 import { useParams } from 'common'
+import { useOrganizationCustomerProfileQuery } from 'data/organizations/organization-customer-profile-query'
 import { useOrganizationPaymentMethodsQuery } from 'data/organizations/organization-payment-methods-query'
 import { checkPermissions, useStore } from 'hooks'
 import { BASE_PATH } from 'lib/constants'
 import { getURL } from 'lib/helpers'
-import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
+import { useEffect, useState } from 'react'
 import { Button, IconAlertCircle, IconCreditCard, IconLoader, IconPlus, Listbox } from 'ui'
 import AddNewPaymentMethodModal from './AddNewPaymentMethodModal'
-import { useState } from 'react'
-
-// [Joshen] This could potentially be shifted to components/ui as it could be shared between this page and org page
-// likewise for AddNewPaymentMethodModal.tsx and AddNewPaymentMethodForm.tsx (these 2 are tightly coupled)
-// Actually sorry, now that i think about it only the add new payment method modal is applicable
-// Okay might not be able to reuse because of this odd quirk between the hcaptcha component and our overlay components
 
 export interface PaymentMethodSelectionProps {
-  selectedPaymentMethod: string
+  selectedPaymentMethod?: string
   onSelectPaymentMethod: (id: string) => void
 }
 
@@ -26,21 +21,37 @@ const PaymentMethodSelection = ({
 }: PaymentMethodSelectionProps) => {
   const { ui } = useStore()
   const { ref: projectRef } = useParams()
-  const snap = useSubscriptionPageStateSnapshot()
-  const [showAddNewPaymentMethodModal, setShowAddNewPaymentMethodModal] = useState(false)
   const slug = ui.selectedOrganization?.slug
+  const [showAddNewPaymentMethodModal, setShowAddNewPaymentMethodModal] = useState(false)
 
   const {
     data,
     isLoading,
+    isSuccess: loadedPaymentMethods,
     refetch: refetchPaymentMethods,
   } = useOrganizationPaymentMethodsQuery({ slug })
   const paymentMethods = data ?? []
+
+  const { data: customerProfile, isSuccess: loadedCustomerProfile } =
+    useOrganizationCustomerProfileQuery({ slug })
 
   const canUpdatePaymentMethods = checkPermissions(
     PermissionAction.BILLING_WRITE,
     'stripe.payment_methods'
   )
+
+  useEffect(() => {
+    if (loadedPaymentMethods && loadedCustomerProfile && paymentMethods.length > 0) {
+      const defaultPaymentMethod = paymentMethods.find(
+        (method) => method.id === customerProfile.invoice_settings.default_payment_method
+      )
+      if (defaultPaymentMethod !== undefined) {
+        onSelectPaymentMethod(defaultPaymentMethod.id)
+      } else {
+        onSelectPaymentMethod(paymentMethods[0].id)
+      }
+    }
+  }, [loadedPaymentMethods, loadedCustomerProfile])
 
   return (
     <>
