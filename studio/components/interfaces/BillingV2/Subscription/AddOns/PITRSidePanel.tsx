@@ -175,7 +175,17 @@ const PITRSidePanel = () => {
                 <Alert
                   withIcon
                   variant="warning"
-                  title="Your project is required to minimally be on a Small Add-on to enable PITR"
+                  className="mb-4"
+                  title="Your project is required to minimally be on a Small compute size to enable PITR"
+                  actions={[
+                    <Button
+                      key="change-compute"
+                      type="default"
+                      onClick={() => snap.setPanelKey('computeInstance')}
+                    >
+                      Change compute size
+                    </Button>,
+                  ]}
                 >
                   This is to ensure that your project has enough resources to execute PITR
                   successfully
