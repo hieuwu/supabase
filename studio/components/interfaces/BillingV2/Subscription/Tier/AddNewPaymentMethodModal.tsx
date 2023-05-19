@@ -1,16 +1,15 @@
 import HCaptcha from '@hcaptcha/react-hcaptcha'
-import { loadStripe } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
-import { useCallback, useEffect, useState } from 'react'
-
-import { Modal } from 'ui'
+import { loadStripe } from '@stripe/stripe-js'
+import ShimmeringLoader from 'components/ui/ShimmeringLoader'
 import { useStore } from 'hooks'
-import { useIsHCaptchaLoaded } from 'stores/hcaptcha-loaded-store'
 import { post } from 'lib/common/fetch'
 import { API_URL, STRIPE_PUBLIC_KEY } from 'lib/constants'
+import { noop } from 'lodash'
+import { useCallback, useEffect, useState } from 'react'
+import { useIsHCaptchaLoaded } from 'stores/hcaptcha-loaded-store'
+import { Modal } from 'ui'
 import AddNewPaymentMethodForm from './AddNewPaymentMethodForm'
-import ShimmeringLoader from 'components/ui/ShimmeringLoader'
-import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 
 // [Joshen] Directly brought over from old Billing folder, so we can deprecate that folder easily next time
 
@@ -19,6 +18,10 @@ interface AddNewPaymentMethodModalProps {
   returnUrl: string
   onCancel: () => void
   onConfirm: () => void
+
+  // Workarounds if opened within an overlay (side panel or modal)
+  onChallengeOpen?: () => void
+  onChallengeClose?: () => void
 }
 
 const stripePromise = loadStripe(STRIPE_PUBLIC_KEY)
@@ -28,13 +31,13 @@ const AddNewPaymentMethodModal = ({
   returnUrl,
   onCancel,
   onConfirm,
+  onChallengeOpen = noop,
+  onChallengeClose = noop,
 }: AddNewPaymentMethodModalProps) => {
   const { ui } = useStore()
   const [intent, setIntent] = useState<any>()
 
   const captchaLoaded = useIsHCaptchaLoaded()
-  const snap = useSubscriptionPageStateSnapshot()
-
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [captchaRef, setCaptchaRef] = useState<HCaptcha | null>(null)
 
@@ -108,36 +111,34 @@ const AddNewPaymentMethodModal = ({
     // So we only show the modal if the captcha has been executed successfully (intent loaded)
     <>
       <HCaptcha
+        id="supabase-captcha"
         ref={captchaRefCallback}
         sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY!}
         size="invisible"
-        onOpen={() => {
-          console.log('onOpen')
-          snap.setIsCaptchaChallengeOpen(true)
-        }}
+        onOpen={onChallengeOpen}
         onClose={() => {
-          console.log('onClose')
           onLocalCancel()
-          snap.setIsCaptchaChallengeOpen(false)
+          onChallengeClose()
         }}
         onVerify={(token) => {
           setCaptchaToken(token)
-          snap.setIsCaptchaChallengeOpen(false)
+          onChallengeClose()
         }}
         onExpire={() => {
           setCaptchaToken(null)
         }}
       />
 
+      {/* [Joshen] Lol i'm genuinely stumped by this one. Workaround is i have to close all panels first before firing the hcaptcha */}
+      {/* Lunch first, think again later */}
+      {/* Cause even blocking on cancel in the modal doesnt work lol what in the actual fk */}
+
       <Modal
         hideFooter
         size="medium"
         visible={visible}
         header="Add new payment method"
-        onCancel={() => {
-          console.log('onCancel', { open: snap.isCaptchaChallengeOpen })
-          // if (!snap.isCaptchaChallengeOpen) onLocalCancel()
-        }}
+        onCancel={() => onLocalCancel()}
         className="PAYMENT"
       >
         <div className="py-4">

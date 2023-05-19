@@ -1,16 +1,17 @@
+import * as Tooltip from '@radix-ui/react-tooltip'
 import { PermissionAction } from '@supabase/shared-types/out/constants'
+import { useParams } from 'common'
+import { useOrganizationPaymentMethodsQuery } from 'data/organizations/organization-payment-methods-query'
 import { checkPermissions, useStore } from 'hooks'
 import { BASE_PATH } from 'lib/constants'
-import * as Tooltip from '@radix-ui/react-tooltip'
-import { IconLoader, IconAlertCircle, Listbox, Button, IconCreditCard, IconPlus } from 'ui'
-import { useOrganizationPaymentMethodsQuery } from 'data/organizations/organization-payment-methods-query'
-import { useState } from 'react'
 import { getURL } from 'lib/helpers'
+import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
+import { Button, IconAlertCircle, IconCreditCard, IconLoader, IconPlus, Listbox } from 'ui'
 import AddNewPaymentMethodModal from './AddNewPaymentMethodModal'
-import { useParams } from 'common'
 
 // [Joshen] This could potentially be shifted to components/ui as it could be shared between this page and org page
 // likewise for AddNewPaymentMethodModal.tsx and AddNewPaymentMethodForm.tsx (these 2 are tightly coupled)
+// Actually sorry, now that i think about it only the add new payment method modal is applicable
 
 export interface PaymentMethodSelectionProps {
   selectedPaymentMethod: string
@@ -23,7 +24,8 @@ const PaymentMethodSelection = ({
 }: PaymentMethodSelectionProps) => {
   const { ui } = useStore()
   const { ref: projectRef } = useParams()
-  const [showAddNewPaymentMethodModal, setShowAddNewPaymentMethodModal] = useState(false)
+  const snap = useSubscriptionPageStateSnapshot()
+  // const [showAddNewPaymentMethodModal, setShowAddNewPaymentMethodModal] = useState(false)
   const slug = ui.selectedOrganization?.slug
 
   const {
@@ -60,7 +62,7 @@ const PaymentMethodSelection = ({
                   type="default"
                   disabled={!canUpdatePaymentMethods}
                   icon={<IconCreditCard />}
-                  onClick={() => setShowAddNewPaymentMethodModal(true)}
+                  onClick={() => snap.setShowAddNewPaymentMethodModal(true)}
                 >
                   Add new
                 </Button>
@@ -111,7 +113,7 @@ const PaymentMethodSelection = ({
             })}
             <div
               className="flex items-center px-3 py-2 space-x-2 transition cursor-pointer group hover:bg-scale-500"
-              onClick={() => setShowAddNewPaymentMethodModal(true)}
+              onClick={() => snap.setShowAddNewPaymentMethodModal(true)}
             >
               <IconPlus size={16} />
               <p className="transition text-scale-1000 group-hover:text-scale-1200">
@@ -123,16 +125,22 @@ const PaymentMethodSelection = ({
       </div>
 
       <AddNewPaymentMethodModal
-        visible={showAddNewPaymentMethodModal}
+        visible={snap.showAddNewPaymentMethodModal}
         returnUrl={`${getURL()}/project/${projectRef}/settings/billing/update/pro`}
-        onCancel={() => setShowAddNewPaymentMethodModal(false)}
+        onCancel={() => snap.setShowAddNewPaymentMethodModal(false)}
         onConfirm={async () => {
-          setShowAddNewPaymentMethodModal(false)
+          snap.setShowAddNewPaymentMethodModal(false)
           ui.setNotification({
             category: 'success',
             message: 'Successfully added new payment method',
           })
           await refetchPaymentMethods()
+        }}
+        onChallengeOpen={() => {
+          snap.setShowAddNewPaymentMethodModal(false)
+        }}
+        onChallengeClose={() => {
+          snap.setShowAddNewPaymentMethodModal(true)
         }}
       />
     </>
