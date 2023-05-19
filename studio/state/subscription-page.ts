@@ -16,6 +16,7 @@ export const subscriptionPageState = proxy({
     subscriptionPageState.panelKey = key
   },
   setIsCaptchaChallengeOpen: (value: boolean) => {
+    console.log('set value', value)
     subscriptionPageState.isCaptchaChallengeOpen = value
   },
 })
