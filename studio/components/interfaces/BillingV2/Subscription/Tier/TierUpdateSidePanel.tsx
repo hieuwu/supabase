@@ -94,7 +94,9 @@ const TierUpdateSidePanel = () => {
         hideFooter
         size="xxlarge"
         visible={visible}
-        onCancel={onClose}
+        onCancel={() => {
+          if (!snap.isCaptchaChallengeOpen) onClose()
+        }}
         header={
           <div className="flex items-center justify-between">
             <h4>Change subscription plan</h4>
@@ -264,7 +266,9 @@ const TierUpdateSidePanel = () => {
         alignFooter="right"
         className="!w-[450px]"
         visible={selectedTier !== undefined && selectedTier !== 'tier_free'}
-        onCancel={() => setSelectedTier(undefined)}
+        onCancel={() => {
+          if (!snap.isCaptchaChallengeOpen) setSelectedTier(undefined)
+        }}
         onConfirm={onUpdateSubscription}
         header={`Confirm to upgrade to ${selectedTierMeta?.name}`}
       >
@@ -289,6 +293,7 @@ const TierUpdateSidePanel = () => {
         visible={showDowngradeError}
         onClose={() => setShowDowngradeError(false)}
       />
+
       <ExitSurveyModal
         visible={showExitSurvey}
         onClose={(success?: boolean) => {

@@ -10,8 +10,13 @@ export type SUBSCRIPTION_PANEL_KEYS =
 
 export const subscriptionPageState = proxy({
   panelKey: undefined as SUBSCRIPTION_PANEL_KEYS,
+  isCaptchaChallengeOpen: false,
+
   setPanelKey: (key: SUBSCRIPTION_PANEL_KEYS) => {
     subscriptionPageState.panelKey = key
+  },
+  setIsCaptchaChallengeOpen: (value: boolean) => {
+    subscriptionPageState.isCaptchaChallengeOpen = value
   },
 })
 

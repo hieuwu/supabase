@@ -10,6 +10,7 @@ import { post } from 'lib/common/fetch'
 import { API_URL, STRIPE_PUBLIC_KEY } from 'lib/constants'
 import AddNewPaymentMethodForm from './AddNewPaymentMethodForm'
 import ShimmeringLoader from 'components/ui/ShimmeringLoader'
+import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 
 // [Joshen] Directly brought over from old Billing folder, so we can deprecate that folder easily next time
 
@@ -32,6 +33,7 @@ const AddNewPaymentMethodModal = ({
   const [intent, setIntent] = useState<any>()
 
   const captchaLoaded = useIsHCaptchaLoaded()
+  const snap = useSubscriptionPageStateSnapshot()
 
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [captchaRef, setCaptchaRef] = useState<HCaptcha | null>(null)
@@ -101,8 +103,6 @@ const AddNewPaymentMethodModal = ({
     return onConfirm()
   }
 
-  console.log({ captchaToken, intent, captchaLoaded })
-
   return (
     // We cant display the hCaptcha in the modal, as the modal auto-closes when clicking the captcha
     // So we only show the modal if the captcha has been executed successfully (intent loaded)
@@ -111,7 +111,10 @@ const AddNewPaymentMethodModal = ({
         ref={captchaRefCallback}
         sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY!}
         size="invisible"
-        onOpen={() => console.log('onOpen')}
+        onOpen={() => {
+          console.log('onOpen')
+          snap.setIsCaptchaChallengeOpen(true)
+        }}
         onClose={onLocalCancel}
         onVerify={(token) => {
           setCaptchaToken(token)
@@ -126,9 +129,8 @@ const AddNewPaymentMethodModal = ({
         size="medium"
         visible={visible}
         header="Add new payment method"
-        onCancel={(event: any) => {
-          console.log({ event })
-          onLocalCancel()
+        onCancel={() => {
+          if (!snap.isCaptchaChallengeOpen) onLocalCancel()
         }}
         className="PAYMENT"
       >
