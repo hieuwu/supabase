@@ -29,7 +29,11 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
   const { data: subscription, isLoading: isLoadingSubscription } = useProjectSubscriptionV2Query({
     projectRef,
   })
-  const { data: upcomingInvoice, isLoading: isLoadingUpcomingInvoice } = useUpcomingInvoiceQuery({
+  const {
+    data: upcomingInvoice,
+    error: upcomingInvoiceError,
+    isLoading: isLoadingUpcomingInvoice,
+  } = useUpcomingInvoiceQuery({
     projectRef,
   })
   const billingCycleStart = dayjs.unix(subscription?.current_period_start ?? 0).utc()
@@ -230,6 +234,27 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
               <ShimmeringLoader className="w-3/4" />
               <ShimmeringLoader className="w-1/2" />
             </div>
+          ) : upcomingInvoiceError !== null ? (
+            <Alert
+              withIcon
+              variant="info"
+              title="Failed to retrieve upcoming invoice details"
+              actions={[
+                <Link
+                  key="contact-support"
+                  href={`/support/new?ref=${projectRef}&category=dashboard_bug&subject=Unable%20to%20view%20upcoming%20invoice%20details`}
+                >
+                  <a>
+                    <Button type="default" className="ml-4">
+                      Contact support
+                    </Button>
+                  </a>
+                </Link>,
+              ]}
+            >
+              Try refreshing your browser, but if the issue persists, please reach out to us via
+              support.
+            </Alert>
           ) : (
             <table className="w-full">
               <thead>
