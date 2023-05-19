@@ -101,7 +101,7 @@ const AddNewPaymentMethodModal = ({
     return onConfirm()
   }
 
-  console.log({ captchaToken, intent })
+  console.log({ captchaToken, intent, captchaLoaded })
 
   return (
     // We cant display the hCaptcha in the modal, as the modal auto-closes when clicking the captcha
@@ -123,10 +123,10 @@ const AddNewPaymentMethodModal = ({
       <Modal
         hideFooter
         size="medium"
-        visible={visible}
+        visible={visible && intent !== undefined}
         header="Add new payment method"
         onCancel={(event: any) => {
-          console.log(event)
+          console.log({ event })
           onLocalCancel()
         }}
         className="PAYMENT"
