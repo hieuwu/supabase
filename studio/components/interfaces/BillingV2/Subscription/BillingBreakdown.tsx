@@ -44,6 +44,8 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
   const [usageFees, fixedFees] = partition(upcomingInvoice?.lines ?? [], (item) => item.usage_based)
   const totalUsageFees = usageFees.reduce((a, b) => a + b.amount, 0)
 
+  console.log({ usage })
+
   const hasExceededAnyLimits =
     !isUsageBillingEnabled &&
     Object.values(usage ?? {})
@@ -140,8 +142,8 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
                 const usageLabel = `${usageCurrentLabel} ${hasLimit ? `of ${usageLimitLabel}` : ''}`
                 const percentageLabel = `${(usageRatio * 100).toFixed(2)}%`
 
-                const isApproachingLimit = usageRatio >= USAGE_APPROACHING_THRESHOLD
-                const isExceededLimit = usageRatio >= 1
+                const isApproachingLimit = hasLimit && usageRatio >= USAGE_APPROACHING_THRESHOLD
+                const isExceededLimit = hasLimit && usageRatio >= 1
 
                 return (
                   <div
