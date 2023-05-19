@@ -12,6 +12,7 @@ import AddNewPaymentMethodModal from './AddNewPaymentMethodModal'
 // [Joshen] This could potentially be shifted to components/ui as it could be shared between this page and org page
 // likewise for AddNewPaymentMethodModal.tsx and AddNewPaymentMethodForm.tsx (these 2 are tightly coupled)
 // Actually sorry, now that i think about it only the add new payment method modal is applicable
+// Okay might not be able to reuse because of this odd quirk between the hcaptcha component and our overlay components
 
 export interface PaymentMethodSelectionProps {
   selectedPaymentMethod: string
@@ -124,7 +125,7 @@ const PaymentMethodSelection = ({
         )}
       </div>
 
-      <AddNewPaymentMethodModal
+      {/* <AddNewPaymentMethodModal
         visible={snap.showAddNewPaymentMethodModal}
         returnUrl={`${getURL()}/project/${projectRef}/settings/billing/update/pro`}
         onCancel={() => snap.setShowAddNewPaymentMethodModal(false)}
@@ -142,7 +143,7 @@ const PaymentMethodSelection = ({
         onChallengeClose={() => {
           snap.setShowAddNewPaymentMethodModal(true)
         }}
-      />
+      /> */}
     </>
   )
 }

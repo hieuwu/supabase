@@ -17,6 +17,8 @@ import { useProjectPlansQuery } from 'data/subscriptions/project-plans-query'
 import ShimmeringLoader from 'components/ui/ShimmeringLoader'
 import { useSubscriptionPageStateSnapshot } from 'state/subscription-page'
 import Link from 'next/link'
+import AddNewPaymentMethodModal from './AddNewPaymentMethodModal'
+import { getURL } from 'lib/helpers'
 
 const TierUpdateSidePanel = () => {
   const { ui } = useStore()
@@ -94,9 +96,7 @@ const TierUpdateSidePanel = () => {
         hideFooter
         size="xxlarge"
         visible={visible}
-        onCancel={() => {
-          if (!snap.isCaptchaChallengeOpen) onClose()
-        }}
+        onCancel={() => onClose()}
         header={
           <div className="flex items-center justify-between">
             <h4>Change subscription plan</h4>
@@ -185,7 +185,10 @@ const TierUpdateSidePanel = () => {
                         type={isDowngradeOption ? 'default' : 'primary'}
                         loading={isLoading}
                         disabled={isLoading}
-                        onClick={() => setSelectedTier(plan.id as any)}
+                        onClick={() => {
+                          setSelectedTier(plan.id as any)
+                          if (!isDowngradeOption) snap.setShowUpgradeConfirmation(true)
+                        }}
                       >
                         {isDowngradeOption ? 'Downgrade' : 'Upgrade'} to {plan.name}
                       </Button>
@@ -265,9 +268,12 @@ const TierUpdateSidePanel = () => {
         loading={isSubmitting}
         alignFooter="right"
         className="!w-[450px]"
-        visible={selectedTier !== undefined && selectedTier !== 'tier_free'}
+        visible={
+          snap.showUpgradeConfirmation && selectedTier !== undefined && selectedTier !== 'tier_free'
+        }
         onCancel={() => {
-          if (!snap.isCaptchaChallengeOpen) setSelectedTier(undefined)
+          snap.setShowUpgradeConfirmation(false)
+          setSelectedTier(undefined)
         }}
         onConfirm={onUpdateSubscription}
         header={`Confirm to upgrade to ${selectedTierMeta?.name}`}
@@ -288,6 +294,28 @@ const TierUpdateSidePanel = () => {
           </div>
         </Modal.Content>
       </Modal>
+
+      <AddNewPaymentMethodModal
+        visible={snap.showAddNewPaymentMethodModal}
+        returnUrl={`${getURL()}/project/${projectRef}/settings/billing/update/pro`}
+        onCancel={() => snap.setShowAddNewPaymentMethodModal(false)}
+        onConfirm={async () => {
+          snap.setShowAddNewPaymentMethodModal(false)
+          ui.setNotification({
+            category: 'success',
+            message: 'Successfully added new payment method',
+          })
+          // await refetchPaymentMethods()
+        }}
+        onChallengeOpen={() => {
+          snap.setShowUpgradeConfirmation(false)
+          snap.setShowAddNewPaymentMethodModal(false)
+        }}
+        onChallengeClose={() => {
+          snap.setShowUpgradeConfirmation(true)
+          snap.setShowAddNewPaymentMethodModal(true)
+        }}
+      />
 
       <MembersExceedLimitModal
         visible={showDowngradeError}
