@@ -100,9 +100,29 @@ const AddNewPaymentMethodModal = ({
   }
 
   return (
-    // We cant display the hCaptcha in the modal, as the modal auto-closes when clicking the captcha
-    // So we only show the modal if the captcha has been executed successfully (intent loaded)
     <>
+      <HCaptcha
+        id="supabase-captcha"
+        ref={captchaRefCallback}
+        sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY!}
+        size="invisible"
+        onOpen={() => {
+          // [Joshen] This is to ensure that hCaptcha popup remains clickable
+          if (document !== undefined) document.body.classList.add('!pointer-events-auto')
+        }}
+        onClose={() => {
+          onLocalCancel()
+          if (document !== undefined) document.body.classList.remove('!pointer-events-auto')
+        }}
+        onVerify={(token) => {
+          setCaptchaToken(token)
+          if (document !== undefined) document.body.classList.remove('!pointer-events-auto')
+        }}
+        onExpire={() => {
+          setCaptchaToken(null)
+        }}
+      />
+
       <Modal
         hideFooter
         size="medium"
@@ -129,28 +149,6 @@ const AddNewPaymentMethodModal = ({
           )}
         </div>
       </Modal>
-
-      <HCaptcha
-        id="supabase-captcha"
-        ref={captchaRefCallback}
-        sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY!}
-        size="invisible"
-        onOpen={() => {
-          // [Joshen] This is to ensure that hCaptcha popup remains clickable
-          // if (document !== undefined) document.body.classList.add('!pointer-events-auto')
-        }}
-        onClose={() => {
-          onLocalCancel()
-          // if (document !== undefined) document.body.classList.remove('!pointer-events-auto')
-        }}
-        onVerify={(token) => {
-          setCaptchaToken(token)
-          // if (document !== undefined) document.body.classList.remove('!pointer-events-auto')
-        }}
-        onExpire={() => {
-          setCaptchaToken(null)
-        }}
-      />
     </>
   )
 }
