@@ -138,12 +138,6 @@ const PaymentMethodSelection = ({
           })
           await refetchPaymentMethods()
         }}
-        // onChallengeOpen={() => {
-        //   snap.setShowAddNewPaymentMethodModal(false)
-        // }}
-        // onChallengeClose={() => {
-        //   snap.setShowAddNewPaymentMethodModal(true)
-        // }}
       />
     </>
   )

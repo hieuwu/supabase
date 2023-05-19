@@ -5,7 +5,6 @@ import ShimmeringLoader from 'components/ui/ShimmeringLoader'
 import { useStore } from 'hooks'
 import { post } from 'lib/common/fetch'
 import { API_URL, STRIPE_PUBLIC_KEY } from 'lib/constants'
-import { noop } from 'lodash'
 import { useCallback, useEffect, useState } from 'react'
 import { useIsHCaptchaLoaded } from 'stores/hcaptcha-loaded-store'
 import { Modal } from 'ui'
@@ -18,10 +17,6 @@ interface AddNewPaymentMethodModalProps {
   returnUrl: string
   onCancel: () => void
   onConfirm: () => void
-
-  // Workarounds if opened within an overlay (side panel or modal)
-  onChallengeOpen?: () => void
-  onChallengeClose?: () => void
 }
 
 const stripePromise = loadStripe(STRIPE_PUBLIC_KEY)
@@ -31,8 +26,6 @@ const AddNewPaymentMethodModal = ({
   returnUrl,
   onCancel,
   onConfirm,
-  onChallengeOpen = noop,
-  onChallengeClose = noop,
 }: AddNewPaymentMethodModalProps) => {
   const { ui } = useStore()
   const [intent, setIntent] = useState<any>()
@@ -115,23 +108,22 @@ const AddNewPaymentMethodModal = ({
         ref={captchaRefCallback}
         sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY!}
         size="invisible"
-        onOpen={onChallengeOpen}
+        onOpen={() => {
+          // [Joshen] This is to ensure that hCaptcha popup remains clickable
+          if (document !== undefined) document.body.classList.add('!pointer-events-auto')
+        }}
         onClose={() => {
           onLocalCancel()
-          onChallengeClose()
+          if (document !== undefined) document.body.classList.remove('!pointer-events-auto')
         }}
         onVerify={(token) => {
           setCaptchaToken(token)
-          onChallengeClose()
+          if (document !== undefined) document.body.classList.remove('!pointer-events-auto')
         }}
         onExpire={() => {
           setCaptchaToken(null)
         }}
       />
-
-      {/* [Joshen] Lol i'm genuinely stumped by this one. Workaround is i have to close all panels first before firing the hcaptcha */}
-      {/* Lunch first, think again later */}
-      {/* Cause even blocking on cancel in the modal doesnt work lol what in the actual fk */}
 
       <Modal
         hideFooter

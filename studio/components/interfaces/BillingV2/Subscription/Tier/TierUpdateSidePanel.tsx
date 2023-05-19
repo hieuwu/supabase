@@ -268,6 +268,7 @@ const TierUpdateSidePanel = () => {
         visible={selectedTier !== undefined && selectedTier !== 'tier_free'}
         onCancel={() => setSelectedTier(undefined)}
         onConfirm={onUpdateSubscription}
+        overlayClassName="pointer-events-none"
         header={`Confirm to upgrade to ${selectedTierMeta?.name}`}
       >
         <Modal.Content>
@@ -286,30 +287,6 @@ const TierUpdateSidePanel = () => {
           </div>
         </Modal.Content>
       </Modal>
-
-      {/* <AddNewPaymentMethodModal
-        visible={snap.showAddNewPaymentMethodModal}
-        returnUrl={`${getURL()}/project/${projectRef}/settings/billing/update/pro`}
-        onCancel={() => snap.setShowAddNewPaymentMethodModal(false)}
-        onConfirm={async () => {
-          snap.setShowAddNewPaymentMethodModal(false)
-          ui.setNotification({
-            category: 'success',
-            message: 'Successfully added new payment method',
-          })
-          // await refetchPaymentMethods()
-        }}
-        // onChallengeOpen={() => {
-        //   snap.setPanelKey(undefined)
-        //   snap.setShowUpgradeConfirmation(false)
-        //   snap.setShowAddNewPaymentMethodModal(false)
-        // }}
-        // onChallengeClose={() => {
-        //   snap.setPanelKey('subscriptionPlan')
-        //   snap.setShowUpgradeConfirmation(true)
-        //   snap.setShowAddNewPaymentMethodModal(true)
-        // }}
-      /> */}
 
       <MembersExceedLimitModal
         visible={showDowngradeError}
