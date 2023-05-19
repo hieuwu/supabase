@@ -44,8 +44,6 @@ const BillingBreakdown = ({}: BillingBreakdownProps) => {
   const [usageFees, fixedFees] = partition(upcomingInvoice?.lines ?? [], (item) => item.usage_based)
   const totalUsageFees = usageFees.reduce((a, b) => a + b.amount, 0)
 
-  console.log({ usage })
-
   const hasExceededAnyLimits =
     !isUsageBillingEnabled &&
     Object.values(usage ?? {})
